@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gin-research-sys/apps"
-	"gin-research-sys/common/database"
+	"gin-research-sys/common"
+	"gin-research-sys/routers"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"log"
@@ -11,9 +11,9 @@ import (
 
 func main() {
 	InitConfig()
-	database.InitDB()
+	common.InitDB()
 	r := gin.Default()
-	r = apps.InitRouter()
+	r = routers.InitRouter()
 	port := viper.GetString("server.port")
 	panic(r.Run(":" + port))
 }

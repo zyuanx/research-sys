@@ -1,4 +1,4 @@
-package user
+package response
 
 type InfoSerializer struct {
 	Id        int    `json:"id"`

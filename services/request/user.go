@@ -1,8 +1,9 @@
-package user
+package request
 
 import (
 	"github.com/go-playground/validator/v10"
 )
+
 type RegisterValidator struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`

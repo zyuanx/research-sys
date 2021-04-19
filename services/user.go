@@ -1,34 +1,37 @@
-package user
+package services
 
 import (
-	"encoding/json"
-	"gin-research-sys/common/response"
+	"gin-research-sys/common"
+	"gin-research-sys/models"
+	"gin-research-sys/services/request"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 )
 
 func Register(ctx *gin.Context) {
-	registerValidator := RegisterValidator{}
+	registerValidator := request.RegisterValidator{}
 	if err := ctx.ShouldBindJSON(&registerValidator); err != nil {
-		response.Fail(ctx, 400, gin.H{}, err.Error())
+		common.Fail(ctx, 400, gin.H{}, err.Error())
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerValidator.Password), bcrypt.DefaultCost)
 	if err != nil {
-		response.Response(ctx,
+		common.Response(ctx,
 			http.StatusInternalServerError,
 			500,
 			nil,
 			"加密错误")
 		return
 	}
-	user := User{
+	user := models.User{
 		Username: registerValidator.Username,
 		Password: string(hashedPassword),
 	}
-	db.Create(&user)
-	response.Success(ctx, 200, gin.H{"user": user}, "success")
+	common.DB.Create(&user)
+	common.Success(ctx, 200, gin.H{"user": user}, "success")
 }
 
 //func userLogin(ctx *gin.Context) {
@@ -47,26 +50,32 @@ func Register(ctx *gin.Context) {
 //
 //}
 
-func userAdd(ctx *gin.Context) {
-	u := User{}
+func UserAdd(ctx *gin.Context) {
+	u := models.User{}
 	if err := ctx.ShouldBindJSON(&u); err != nil {
-		response.Fail(ctx, 400, gin.H{}, err.Error())
+		common.Fail(ctx, 400, gin.H{}, err.Error())
 		return
 	}
 
-	if err := u.add(); err != nil {
-		response.Fail(ctx, 400, gin.H{}, err.Error())
+	if err := u.Add(); err != nil {
+		common.Fail(ctx, 400, gin.H{}, err.Error())
 	} else {
-		response.Success(ctx, 200, gin.H{"user": u}, "user add success")
+		common.Success(ctx, 200, gin.H{"user": u}, "user add success")
 	}
 }
 
-func userInfo(ctx *gin.Context) {
-	u, _ := ctx.Get("user")
-	b, err := json.Marshal(u)
-	if err != nil {
-		response.Fail(ctx, 400, gin.H{}, err.Error())
-	} else {
-		response.Success(ctx, 200, gin.H{"user": b}, "success")
-	}
+func UserInfo(ctx *gin.Context) {
+	claims := jwt.ExtractClaims(ctx)
+	log.Println(claims)
+	//u, _ := ctx.Get("user")
+	//b, err := json.Marshal(u)
+	//if err != nil {
+	//	common.Fail(ctx, 400, gin.H{}, err.Error())
+	//} else {
+	//	common.Success(ctx, 200, gin.H{"user": b}, "success")
+	//}
+}
+
+func UserTest(ctx *gin.Context)  {
+	common.Success(ctx, 200, gin.H{}, "UserTest")
 }

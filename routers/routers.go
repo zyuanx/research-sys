@@ -1,7 +1,7 @@
-package apps
+package routers
 
 import (
-	"gin-research-sys/apps/user"
+	api2 "gin-research-sys/routers/api"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +20,7 @@ func setUpRouter(router *gin.Engine) {
 
 	api := router.Group("/api")
 	{
-		user.RegisterRouter(api.Group("/user"))
+		api2.RegisterRouter(api.Group("/user"))
 	}
 
 }

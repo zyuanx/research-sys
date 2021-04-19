@@ -25,9 +25,3 @@ __pycache__
 *.njsproj
 *.sln
 *.sw?
-
-/static/
-/nginx/nginx.log/
-/uwsgi/uwsgi.log
-/uwsgi/uwsgi.pid
-/celery_log/

@@ -1,16 +1,17 @@
-package database
+package common
 
 import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"log"
 )
 
-func InitDB() *gorm.DB {
+var DB *gorm.DB
+
+func InitDB() {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		log.Println(err)
 	}
-	//database.AutoMigrate(&model.User{})
-	return db
+	DB = db
 }
-
