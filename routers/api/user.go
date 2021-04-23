@@ -6,11 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RegisterRouter 注册路由
-func RegisterRouter(r *gin.RouterGroup) {
+func RegisterUserRouter(r *gin.RouterGroup) {
 
 	r.POST("/register", services.Register)
 	r.POST("/login", middlewares.JWTAuthMiddleware.LoginHandler)
+	r.POST("/logout", middlewares.JWTAuthMiddleware.LogoutHandler)
 	r.GET("/refresh_token", middlewares.JWTAuthMiddleware.RefreshHandler)
 	//
 	auth := r.Group("")

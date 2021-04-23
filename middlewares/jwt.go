@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"gin-research-sys/models"
+	"gin-research-sys/services"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
@@ -45,15 +46,7 @@ func init() {
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			var login Login
-			if err := c.ShouldBind(&login); err != nil {
-				return "", jwt.ErrMissingLoginValues
-			}
-			user := &models.User{
-				Username: login.Username,
-				Password: login.Password,
-			}
-			err := user.Login()
+			user, err := services.UserLogin(c)
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}

@@ -1,16 +1,9 @@
 package models
 
 import (
-	"gin-research-sys/common"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-//func init()  {
-//	if err := common.DB.AutoMigrate(&User{}); err != nil {
-//		log.Println(err)
-//	}
-//}
 type User struct {
 	gorm.Model
 	Username  string `gorm:"type:varchar(20);not null;unique;uniqueIndex"`
@@ -18,18 +11,17 @@ type User struct {
 	Password  string `gorm:"size:255;not null"`
 }
 
-type Users []User
 
-func (u *User) Login() error {
-	password := u.Password
-	result := common.DB.Where("username = ?", u.Username).First(&u)
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-	if err != nil {
-		return err
-	}
-	return result.Error
-}
-func (u *User) Add() error {
-	result := common.DB.Create(u)
-	return result.Error
-}
+//func (u *User) Login() error {
+//	password := u.Password
+//	result := global.Mysql.Where("username = ?", u.Username).First(&u)
+//	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+//	if err != nil {
+//		return err
+//	}
+//	return result.Error
+//}
+//func (u *User) Add() error {
+//	result := global.Mysql.Create(u)
+//	return result.Error
+//}

@@ -4,7 +4,7 @@ datasource:
   driverName: mysql
   host: 127.0.0.1
   port: 3306
-  database: ginxx
+  database: research_sys
   username: root
   password: root
   charset: utf8
