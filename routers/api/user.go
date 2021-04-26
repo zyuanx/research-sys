@@ -1,14 +1,16 @@
 package api
 
 import (
+	"gin-research-sys/controllers"
 	"gin-research-sys/middlewares"
-	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterUserRouter(r *gin.RouterGroup) {
 
-	r.POST("/register", services.Register)
+	userController := controllers.NewUserController()
+
+	r.POST("/register", userController.Register)
 	r.POST("/login", middlewares.JWTAuthMiddleware.LoginHandler)
 	r.POST("/logout", middlewares.JWTAuthMiddleware.LogoutHandler)
 	r.GET("/refresh_token", middlewares.JWTAuthMiddleware.RefreshHandler)
@@ -16,8 +18,6 @@ func RegisterUserRouter(r *gin.RouterGroup) {
 	auth := r.Group("")
 	auth.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
 	{
-		auth.GET("/info/:id", services.UserInfo)
-		auth.GET("/test", services.UserTest)
-
+		auth.GET("/info/:id", userController.GetInfo)
 	}
 }

@@ -15,3 +15,9 @@ func Success(ctx *gin.Context, data gin.H, msg string) {
 func Fail(ctx *gin.Context, data gin.H, msg string) {
 	Response(ctx, http.StatusOK, 400, data, msg)
 }
+
+type BaseData struct {
+	Id        uint             `json:"id"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}

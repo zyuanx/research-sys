@@ -1,8 +1,10 @@
 package middlewares
 
 import (
+	"gin-research-sys/controllers/request"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
@@ -28,7 +30,7 @@ func init() {
 		MaxRefresh:  time.Hour * 24,
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*models.User); ok {
+			if v, ok := data.(models.User); ok {
 				return jwt.MapClaims{
 					identityKey: v.ID,
 					"username":  v.Username,
@@ -38,7 +40,9 @@ func init() {
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
-			return &models.User{
+			// 此处返回值类型interface{}与payloadFunc和authorizator的data类型必须一致,
+			// 否则会导致授权失败还不容易找到原因
+			return models.User{
 				Model: gorm.Model{
 					ID: uint(claims[identityKey].(float64)),
 				},
@@ -46,15 +50,29 @@ func init() {
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			user, err := services.UserLogin(c)
+			login := request.LoginValidator{}
+			if err := c.ShouldBindJSON(&login); err != nil {
+				return nil, err
+			}
+			user := models.User{
+				Username: login.Username,
+				Password: login.Password,
+			}
+			if err := services.UserLogin(&user); err != nil {
+				return nil, err
+			}
+			password := login.Password
+			err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
+			c.Set("user", user)
+			log.Println(user)
 			return user, nil
 
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if _, ok := data.(*models.User); ok {
+			if _, ok := data.(models.User); ok {
 				return true
 			}
 			return false

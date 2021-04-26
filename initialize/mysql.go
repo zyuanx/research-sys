@@ -6,6 +6,7 @@ import (
 	"gin-research-sys/pkg/global"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"log"
 )
 
 func MySQL() {
@@ -17,6 +18,7 @@ func MySQL() {
 	global.Mysql = db
 	// 表结构
 	autoMigrate()
+	log.Println("数据库迁移完成")
 }
 
 func autoMigrate() {
