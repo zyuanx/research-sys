@@ -1,0 +1,10 @@
+package models
+
+import "gorm.io/gorm"
+
+type Role struct {
+	gorm.Model
+	Title string  `gorm:"size:32"`
+	Desc  string  `gorm:"size:255"`
+	Users []*User `gorm:"many2many:user_role"`
+}

@@ -24,6 +24,7 @@ func MySQL() {
 func autoMigrate() {
 	err := global.Mysql.AutoMigrate(
 		new(models.User),
+		new(models.Role),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("数据库迁移异常: %v", err))

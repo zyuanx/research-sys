@@ -21,6 +21,9 @@ type UserController struct {
 func NewUserController() IUserController {
 	return UserController{}
 }
+
+var userServices = services.NewUserService()
+
 func (u UserController) Register(ctx *gin.Context) {
 	registerValidator := request.RegisterValidator{}
 	if err := ctx.ShouldBindJSON(&registerValidator); err != nil {
@@ -37,7 +40,7 @@ func (u UserController) Register(ctx *gin.Context) {
 		Password: string(hashedPassword),
 	}
 
-	err = services.UserRegister(&user)
+	err = userServices.UserRegister(&user)
 	if err != nil {
 		response.Fail(ctx, gin.H{}, err.Error())
 		return
@@ -55,7 +58,7 @@ func (u UserController) Login(ctx *gin.Context) {
 		Username: login.Username,
 		Password: login.Password,
 	}
-	if err := services.UserLogin(&user); err != nil {
+	if err := userServices.UserLogin(&user); err != nil {
 		response.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
@@ -76,7 +79,7 @@ func (u UserController) GetInfo(ctx *gin.Context) {
 		return
 	}
 	user := models.User{}
-	if err := services.UserInfo(&user, id); err != nil {
+	if err := userServices.UserInfo(&user, id); err != nil {
 		response.Fail(ctx, gin.H{}, err.Error())
 		return
 	}

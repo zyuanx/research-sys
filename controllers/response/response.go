@@ -17,7 +17,7 @@ func Fail(ctx *gin.Context, data gin.H, msg string) {
 }
 
 type BaseData struct {
-	Id        uint             `json:"id"`
+	Id        uint   `json:"id"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }

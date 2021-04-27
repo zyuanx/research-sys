@@ -58,7 +58,8 @@ func init() {
 				Username: login.Username,
 				Password: login.Password,
 			}
-			if err := services.UserLogin(&user); err != nil {
+			userServices := services.NewUserService()
+			if err := userServices.UserLogin(&user); err != nil {
 				return nil, err
 			}
 			password := login.Password
