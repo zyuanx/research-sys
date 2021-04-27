@@ -1,0 +1,61 @@
+definitions:
+  request.CreateRoleValidate:
+    properties:
+      desc:
+        type: string
+      title:
+        type: string
+    required:
+    - desc
+    - title
+    type: object
+  response.Result:
+    properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        type: object
+      message:
+        example: 响应信息
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: An example of gin
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Research Sys API
+  version: "1.0"
+paths:
+  /api/role:
+    post:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: 角色
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateRoleValidate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功后返回值
+          schema:
+            $ref: '#/definitions/response.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: create a new role
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

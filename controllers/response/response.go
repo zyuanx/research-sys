@@ -4,6 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
+type Result struct {
+	Code    int         `json:"code" example:"200"`
+	Message string      `json:"message" example:"响应信息"`
+	Data    struct{} `json:"data" `
+}
 
 func Response(ctx *gin.Context, httpStatus int, code int, data gin.H, msg string) {
 	ctx.JSON(httpStatus, gin.H{"code": code, "data": data, "msg": msg})

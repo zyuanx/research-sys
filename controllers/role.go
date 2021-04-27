@@ -20,6 +20,15 @@ func NewRoleController() RoleController {
 
 var roleServices = services.NewRoleService()
 
+// Create
+// @Summary create a new role
+// @Description get string by ID
+// @Accept application/json
+// @Produce application/json
+// @Security ApiKeyAuth
+// @Param role body request.CreateRoleValidate true "角色"
+// @Success 200 {object} response.Result "成功后返回值"
+// @Router /api/role [post]
 func (r RoleController) Create(ctx *gin.Context) {
 	createRoleValidate := request.CreateRoleValidate{}
 	if err := ctx.ShouldBindJSON(&createRoleValidate); err != nil {
