@@ -10,16 +10,17 @@ import (
 	"strconv"
 )
 
-type IUserController interface {
-	Register(ctx *gin.Context)
-	Login(ctx *gin.Context)
-	GetInfo(ctx *gin.Context)
-}
 type UserController struct {
 }
 
 func NewUserController() IUserController {
 	return UserController{}
+}
+
+type IUserController interface {
+	Register(ctx *gin.Context)
+	Login(ctx *gin.Context)
+	GetInfo(ctx *gin.Context)
 }
 
 var userServices = services.NewUserService()

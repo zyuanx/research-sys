@@ -20,6 +20,7 @@ import (
 // @name Authorization
 func main() {
 	initialize.MySQL()
+	initialize.MongoDB()
 	r := initialize.Routers()
 	panic(r.Run())
 }

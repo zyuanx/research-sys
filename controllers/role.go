@@ -8,14 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type IRoleController interface {
-	Create(ctx *gin.Context)
-}
 type RoleController struct {
 }
 
 func NewRoleController() RoleController {
 	return RoleController{}
+}
+
+type IRoleController interface {
+	Create(ctx *gin.Context)
 }
 
 var roleServices = services.NewRoleService()
@@ -39,8 +40,7 @@ func (r RoleController) Create(ctx *gin.Context) {
 		Title: createRoleValidate.Title,
 		Desc:  createRoleValidate.Desc,
 	}
-	err := roleServices.Create(&role)
-	if err != nil {
+	if err := roleServices.Create(&role); err != nil {
 		response.Fail(ctx, gin.H{}, err.Error())
 		return
 	}

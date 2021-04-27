@@ -21,6 +21,7 @@ require (
 	github.com/swaggo/swag v1.7.0 // indirect
 	github.com/ugorji/go v1.2.5 // indirect
 	github.com/urfave/cli v1.20.0 // indirect
+	go.mongodb.org/mongo-driver v1.5.1 // indirect
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6 // indirect
 	golang.org/x/sys v0.0.0-20210426230700-d19ff857e887 // indirect
