@@ -20,4 +20,9 @@ func Casbin() {
 	}
 	// 日志记录
 	global.Enforcer.EnableLog(true)
+	if ok, _ := global.Enforcer.AddPolicy("admin", "/api/v1/hello", "GET"); !ok {
+		fmt.Println("Policy已经存在")
+	} else {
+		fmt.Println("增加成功")
+	}
 }
