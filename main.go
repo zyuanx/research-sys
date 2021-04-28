@@ -19,8 +19,11 @@ import (
 // @in header
 // @name Authorization
 func main() {
+
 	initialize.MySQL()
 	initialize.MongoDB()
+	initialize.BigCache()
+	initialize.Casbin()
 	r := initialize.Routers()
 	panic(r.Run())
 }
