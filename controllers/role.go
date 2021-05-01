@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var roleServices = services.NewRoleService()
+
 type RoleController struct {
 }
 
@@ -16,10 +18,9 @@ func NewRoleController() RoleController {
 }
 
 type IRoleController interface {
+	List(ctx *gin.Context)
 	Create(ctx *gin.Context)
 }
-
-var roleServices = services.NewRoleService()
 
 // Create
 // @Summary create a new role

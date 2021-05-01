@@ -25,4 +25,10 @@ func Casbin() {
 	} else {
 		fmt.Println("增加成功")
 	}
+
+	// 加载策略规则
+	err = global.Enforcer.LoadPolicy()
+	if err != nil {
+		fmt.Println("loadPolicy error")
+	}
 }
