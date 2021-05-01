@@ -10,16 +10,23 @@ import (
 
 var roleServices = services.NewRoleService()
 
-type RoleController struct {
+type IRoleController interface {
+	List(ctx *gin.Context)
+	Create(ctx *gin.Context)
 }
+type RoleController struct{}
 
 func NewRoleController() RoleController {
 	return RoleController{}
 }
 
-type IRoleController interface {
-	List(ctx *gin.Context)
-	Create(ctx *gin.Context)
+func (r RoleController) List(ctx *gin.Context) {
+	var roles []models.Role
+	err := roleServices.List(&roles, 10, 1)
+	if err != nil {
+		response.Success(ctx, nil, "err")
+	}
+	response.Success(ctx, gin.H{"roles": roles}, "")
 }
 
 // Create
