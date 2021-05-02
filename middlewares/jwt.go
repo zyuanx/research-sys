@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"gin-research-sys/controllers/request"
+	"gin-research-sys/controllers/req"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
 	"golang.org/x/crypto/bcrypt"
@@ -50,7 +50,7 @@ func init() {
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			login := request.LoginValidator{}
+			login := req.LoginValidator{}
 			if err := c.ShouldBindJSON(&login); err != nil {
 				return nil, err
 			}

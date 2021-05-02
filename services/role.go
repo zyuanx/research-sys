@@ -17,8 +17,9 @@ func NewRoleService() RoleService {
 	return RoleService{}
 }
 
-func (r RoleService) List(roles *[]models.Role, size int, page uint) error {
-	if err := global.Mysql.Limit(size).Find(&roles).Error; err != nil {
+func (r RoleService) List(page int, size int, modelList interface{}, total *int64) error {
+	var err error
+	if err = global.Mysql.Model(&models.Role{}).Count(total).Scopes(global.Paginate(page, size)).Find(modelList).Error; err != nil {
 		return err
 	}
 	return nil

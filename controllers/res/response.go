@@ -1,12 +1,13 @@
-package response
+package res
 
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
+
 type Result struct {
-	Code    int         `json:"code" example:"200"`
-	Message string      `json:"message" example:"响应信息"`
+	Code    int      `json:"code" example:"200"`
+	Message string   `json:"message" example:"响应信息"`
 	Data    struct{} `json:"data" `
 }
 
@@ -25,4 +26,11 @@ type BaseData struct {
 	Id        uint   `json:"id"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
+}
+
+type PaginationRes struct {
+	Size    uint        `json:"size"`
+	Page    uint        `json:"page"`
+	Results interface{} `json:"results"`
+	Total   uint        `json:"total"`
 }

@@ -30,6 +30,40 @@ var doc = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/role": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "list all role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功后返回值",
+                        "schema": {
+                            "$ref": "#/definitions/res.Result"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -51,7 +85,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.CreateRoleValidate"
+                            "$ref": "#/definitions/req.CreateRoleValidate"
                         }
                     }
                 ],
@@ -59,7 +93,7 @@ var doc = `{
                     "200": {
                         "description": "成功后返回值",
                         "schema": {
-                            "$ref": "#/definitions/response.Result"
+                            "$ref": "#/definitions/res.Result"
                         }
                     }
                 }
@@ -67,7 +101,7 @@ var doc = `{
         }
     },
     "definitions": {
-        "request.CreateRoleValidate": {
+        "req.CreateRoleValidate": {
             "type": "object",
             "required": [
                 "desc",
@@ -82,7 +116,7 @@ var doc = `{
                 }
             }
         },
-        "response.Result": {
+        "res.Result": {
             "type": "object",
             "properties": {
                 "code": {

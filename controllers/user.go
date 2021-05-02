@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"gin-research-sys/controllers/request"
-	"gin-research-sys/controllers/response"
+	"gin-research-sys/controllers/req"
+	"gin-research-sys/controllers/res"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
@@ -26,14 +26,14 @@ type IUserController interface {
 var userServices = services.NewUserService()
 
 func (u UserController) Register(ctx *gin.Context) {
-	registerValidator := request.RegisterValidator{}
+	registerValidator := req.RegisterValidator{}
 	if err := ctx.ShouldBindJSON(&registerValidator); err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerValidator.Password), bcrypt.DefaultCost)
 	if err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
 	user := models.User{
@@ -43,16 +43,16 @@ func (u UserController) Register(ctx *gin.Context) {
 
 	err = userServices.UserRegister(&user)
 	if err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	response.Success(ctx, gin.H{"user": user}, "")
+	res.Success(ctx, gin.H{"user": user}, "")
 }
 
 func (u UserController) Login(ctx *gin.Context) {
-	login := request.LoginValidator{}
+	login := req.LoginValidator{}
 	if err := ctx.ShouldBindJSON(&login); err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
 	user := models.User{
@@ -60,31 +60,31 @@ func (u UserController) Login(ctx *gin.Context) {
 		Password: login.Password,
 	}
 	if err := userServices.UserLogin(&user); err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
 	password := user.Password
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	response.Success(ctx, gin.H{"user": user}, "")
+	res.Success(ctx, gin.H{"user": user}, "")
 }
 
 func (u UserController) GetInfo(ctx *gin.Context) {
 	//user := middlewares.JWTAuthMiddleware.IdentityHandler(ctx)
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
 	user := models.User{}
 	if err := userServices.UserInfo(&user, id); err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	response.Success(ctx, gin.H{
-		"user": response.InfoSerializer(user),
+	res.Success(ctx, gin.H{
+		"user": res.InfoSerializer(user),
 	}, "")
 }

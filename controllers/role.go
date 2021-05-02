@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"gin-research-sys/controllers/request"
-	"gin-research-sys/controllers/response"
+	"gin-research-sys/controllers/req"
+	"gin-research-sys/controllers/res"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
@@ -20,13 +20,35 @@ func NewRoleController() RoleController {
 	return RoleController{}
 }
 
+// List
+// @Summary list all role
+// @Description
+// @Accept application/json
+// @Produce application/json
+// @Security ApiKeyAuth
+// @Param pagination query req.PaginationQuery true "PaginationQuery"
+// @Success 200 {object} res.Result "成功后返回值"
+// @Failure 400 {object} res.Fail
+// @Router /api/role [get]
 func (r RoleController) List(ctx *gin.Context) {
-	var roles []models.Role
-	err := roleServices.List(&roles, 10, 1)
-	if err != nil {
-		response.Success(ctx, nil, "err")
+	var _ []models.Role
+	pg := req.PaginationQuery{}
+	if err := ctx.ShouldBindQuery(&pg); err != nil {
+		res.Success(ctx, nil, err.Error())
+		return
 	}
-	response.Success(ctx, gin.H{"roles": roles}, "")
+	var roleList []res.RoleListResponse
+	var total int64
+	err := roleServices.List(pg.Page, pg.Size, &roleList, &total)
+	if err != nil {
+		res.Success(ctx, nil, err.Error())
+	}
+	res.Success(ctx, gin.H{
+		"page":    pg.Page,
+		"size":    pg.Size,
+		"results": roleList,
+		"total":   total,
+	}, "")
 }
 
 // Create
@@ -35,13 +57,13 @@ func (r RoleController) List(ctx *gin.Context) {
 // @Accept application/json
 // @Produce application/json
 // @Security ApiKeyAuth
-// @Param role body request.CreateRoleValidate true "角色"
-// @Success 200 {object} response.Result "成功后返回值"
+// @Param role body req.CreateRoleValidate true "角色"
+// @Success 200 {object} res.Result "成功后返回值"
 // @Router /api/role [post]
 func (r RoleController) Create(ctx *gin.Context) {
-	createRoleValidate := request.CreateRoleValidate{}
+	createRoleValidate := req.CreateRoleValidate{}
 	if err := ctx.ShouldBindJSON(&createRoleValidate); err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
 	role := models.Role{
@@ -49,8 +71,8 @@ func (r RoleController) Create(ctx *gin.Context) {
 		Desc:  createRoleValidate.Desc,
 	}
 	if err := roleServices.Create(&role); err != nil {
-		response.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	response.Success(ctx, gin.H{"role": role}, "")
+	res.Success(ctx, gin.H{"role": role}, "")
 }

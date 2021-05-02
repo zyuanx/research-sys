@@ -14,6 +14,40 @@
     "host": "localhost:8080",
     "paths": {
         "/api/role": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "list all role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功后返回值",
+                        "schema": {
+                            "$ref": "#/definitions/res.Result"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -35,7 +69,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.CreateRoleValidate"
+                            "$ref": "#/definitions/req.CreateRoleValidate"
                         }
                     }
                 ],
@@ -43,7 +77,7 @@
                     "200": {
                         "description": "成功后返回值",
                         "schema": {
-                            "$ref": "#/definitions/response.Result"
+                            "$ref": "#/definitions/res.Result"
                         }
                     }
                 }
@@ -51,7 +85,7 @@
         }
     },
     "definitions": {
-        "request.CreateRoleValidate": {
+        "req.CreateRoleValidate": {
             "type": "object",
             "required": [
                 "desc",
@@ -66,7 +100,7 @@
                 }
             }
         },
-        "response.Result": {
+        "res.Result": {
             "type": "object",
             "properties": {
                 "code": {
