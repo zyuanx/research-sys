@@ -4,13 +4,26 @@ import (
 	"fmt"
 	"gin-research-sys/models"
 	"gin-research-sys/pkg/global"
+	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
 )
 
 func MySQL() {
-	dsn := "root:123456@tcp(127.0.0.1:3306)/research_sys?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%s&loc=%s",
+		viper.GetString("mysql.username"),
+		viper.GetString("mysql.password"),
+		viper.GetString("mysql.host"),
+		viper.GetInt("mysql.port"),
+		viper.GetString("mysql.database"),
+		viper.GetString("mysql.charset"),
+		viper.GetString("mysql.parseTime"),
+		viper.GetString("mysql.loc"),
+	)
+	log.Println(dsn)
+	//dsn := "root:123456@tcp(127.0.0.1:3306)/research_sys?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(fmt.Sprintf("初始化mysql异常: %v", err))

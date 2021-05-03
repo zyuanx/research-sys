@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// 设置日志级别、输出格式和日志文件的路径
+// SetLogs 设置日志级别、输出格式和日志文件的路径
 func SetLogs(logLevel zapcore.Level, logFormat string) {
 
 	encoderConfig := zapcore.EncoderConfig{

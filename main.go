@@ -19,6 +19,7 @@ import (
 // @name Authorization
 func main() {
 	initialize.Zap()
+	initialize.Viper()
 	initialize.MySQL()
 	initialize.MongoDB()
 	initialize.Casbin()
