@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"gin-research-sys/controllers/req"
-	"gin-research-sys/controllers/res"
 	"gin-research-sys/models"
+	"gin-research-sys/pkg/req"
+	"gin-research-sys/pkg/res"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

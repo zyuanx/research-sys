@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"gin-research-sys/controllers/req"
-	"gin-research-sys/controllers/res"
 	"gin-research-sys/models"
+	"gin-research-sys/pkg/req"
+	"gin-research-sys/pkg/res"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
+	"log"
 	"strconv"
 )
 
@@ -42,16 +43,16 @@ func (r RoleController) List(ctx *gin.Context) {
 		res.Success(ctx, nil, err.Error())
 		return
 	}
-	var roleList []res.RoleListResponse
+	var roles []models.Role
 	var total int64
-	err := roleServices.List(pg.Page, pg.Size, &roleList, &total)
+	err := roleServices.List(pg.Page, pg.Size, &roles, &total)
 	if err != nil {
 		res.Success(ctx, nil, err.Error())
 	}
 	res.Success(ctx, gin.H{
 		"page":    pg.Page,
 		"size":    pg.Size,
-		"results": roleList,
+		"results": roles,
 		"total":   total,
 	}, "")
 }
@@ -66,32 +67,26 @@ func (r RoleController) List(ctx *gin.Context) {
 // @Success 200 {object} res.Result "成功后返回值"
 // @Router /api/role [post]
 func (r RoleController) Create(ctx *gin.Context) {
-	createRoleValidate := req.CreateRoleValidate{}
-	if err := ctx.ShouldBindJSON(&createRoleValidate); err != nil {
+	role := models.Role{}
+	if err := ctx.ShouldBindJSON(&role); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
-		return
 	}
-	role := models.Role{
-		Title: createRoleValidate.Title,
-		Desc:  createRoleValidate.Desc,
-	}
+	//role := models.Role{}
+	//utils.Struct2StructByJson(createRoleValidate, role)
 	if err := roleServices.Create(&role); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
-		return
 	}
 	res.Success(ctx, gin.H{"role": role}, "")
 }
 
 func (r RoleController) Retrieve(ctx *gin.Context) {
 	idString := ctx.Param("id")
-	role := models.Role{}
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
-		return
 	}
-	err = roleServices.Retrieve(&role, id)
-	if err != nil {
+	role := res.RoleResponse{}
+	if err = roleServices.Retrieve(&role, id); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
@@ -99,7 +94,28 @@ func (r RoleController) Retrieve(ctx *gin.Context) {
 }
 
 func (r RoleController) Update(ctx *gin.Context) {
-	panic("implement me")
+	idString := ctx.Param("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		res.Fail(ctx, gin.H{}, err.Error())
+		return
+	}
+	roleUpdateValidate := req.RoleUpdateValidate{}
+	if err = ctx.ShouldBindJSON(&roleUpdateValidate); err != nil {
+		res.Fail(ctx, gin.H{}, err.Error())
+		return
+	}
+	role := models.Role{}
+	if err = roleServices.Retrieve(&role, id); err != nil {
+		res.Fail(ctx, gin.H{}, err.Error())
+		return
+	}
+	if err = roleServices.Update(&role, &roleUpdateValidate); err != nil {
+		res.Fail(ctx, gin.H{}, err.Error())
+		return
+	}
+
+	res.Success(ctx, gin.H{"role": role}, "")
 }
 
 func (r RoleController) PartialUpdate(ctx *gin.Context) {
@@ -107,5 +123,17 @@ func (r RoleController) PartialUpdate(ctx *gin.Context) {
 }
 
 func (r RoleController) Destroy(ctx *gin.Context) {
-	panic("implement me")
+	idString := ctx.Param("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "param error")
+		return
+	}
+	if err = roleServices.Destroy(id); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "delete fail")
+		return
+	}
+	res.Success(ctx, gin.H{}, "delete success")
 }

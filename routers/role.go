@@ -12,7 +12,9 @@ func RegisterRoleRouter(r *gin.RouterGroup) {
 	role := r.Group("")
 	//role.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
 	role.GET("", controller.List)
-	role.POST("", controller.Create)
 	role.GET("/:id", controller.Retrieve)
+	role.POST("", controller.Create)
+	role.PUT("/:id", controller.Update)
+	role.DELETE("/:id", controller.Destroy)
 
 }

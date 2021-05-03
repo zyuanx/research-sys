@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"gin-research-sys/controllers/req"
 	"gin-research-sys/models"
+	"gin-research-sys/pkg/req"
 	"gin-research-sys/services"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"

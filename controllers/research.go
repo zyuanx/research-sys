@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"gin-research-sys/controllers/res"
+	"gin-research-sys/pkg/res"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
