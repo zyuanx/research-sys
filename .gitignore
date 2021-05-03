@@ -25,3 +25,5 @@ __pycache__
 *.njsproj
 *.sln
 *.sw?
+
+/logs/*\.log

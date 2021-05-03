@@ -5,13 +5,20 @@ import (
 	"gin-research-sys/middlewares"
 	"gin-research-sys/routers"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"go.uber.org/zap"
+	"time"
 )
 
 func Routers() *gin.Engine {
-	r := gin.Default()
+	r := gin.New()
+
+	r.Use(ginzap.Ginzap(zap.L(), time.RFC3339, true))
+	r.Use(ginzap.RecoveryWithZap(zap.L(), true))
+
 	r.Use(cors.Default())
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

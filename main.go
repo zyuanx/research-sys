@@ -14,12 +14,11 @@ import (
 
 // @host localhost:8080
 
-
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
 func main() {
-
+	initialize.Zap()
 	initialize.MySQL()
 	initialize.MongoDB()
 	initialize.Casbin()
