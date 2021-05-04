@@ -83,7 +83,7 @@ func (r RoleController) Retrieve(ctx *gin.Context) {
 	if err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
 	}
-	role := res.RoleResponse{}
+	role := models.Role{}
 	if err = roleServices.Retrieve(&role, id); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return

@@ -30,7 +30,7 @@ func (r RoleService) List(page int, size int, roles *[]models.Role, total *int64
 	return nil
 }
 
-func (r RoleService) Retrieve(role interface{}, id int) error {
+func (r RoleService) Retrieve(role *models.Role, id int) error {
 	if err := global.Mysql.Model(&models.Role{}).First(&role, id).Error; err != nil {
 		return err
 	}

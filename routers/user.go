@@ -21,5 +21,6 @@ func RegisterUserRouter(r *gin.RouterGroup) {
 		auth.GET("/info", userController.GetInfo)
 		auth.GET("", userController.List)
 		auth.GET("/:id", userController.Retrieve)
+		auth.PUT("/:id", userController.Update)
 	}
 }

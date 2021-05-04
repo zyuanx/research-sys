@@ -3,7 +3,6 @@ package services
 import (
 	"gin-research-sys/models"
 	"gin-research-sys/pkg/global"
-	"gin-research-sys/pkg/utils"
 )
 
 type IUserService interface {
@@ -68,9 +67,8 @@ func (u UserService) Create(user *models.User) error {
 	panic("implement me")
 }
 
-func (u UserService) Update(user *models.User, data interface{}) error {
-	d, _ := utils.ToMap(data, "json")
-	if err := global.Mysql.Model(&user).Updates(&d).Error; err != nil {
+func (u UserService) Update(user *models.User) error {
+	if err := global.Mysql.Save(&user).Error; err != nil {
 		return err
 	}
 	return nil

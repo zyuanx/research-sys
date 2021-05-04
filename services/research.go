@@ -2,12 +2,14 @@ package services
 
 import (
 	"context"
+	"gin-research-sys/models"
 	"gin-research-sys/pkg/global"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"time"
 )
 
 type ResearchListService struct {
@@ -68,12 +70,32 @@ func (r ResearchListService) Retrieve(research *bson.M, id string) error {
 	return nil
 }
 
-func (r ResearchListService) Create(research *bson.M) error {
-	panic("implement me")
+func (r ResearchListService) Create(research *models.ResearchList) error {
+	collection := global.Mongo.Database("test").Collection("research_list")
+	research.CreatedAt = time.Now()
+	research.UpdatedAt = time.Now()
+	_, err := collection.InsertOne(context.TODO(), research)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r ResearchListService) Update(research *bson.M, id int, data interface{}) error {
-	panic("implement me")
+func (r ResearchListService) Update(id string, data map[string]interface{}) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objectID}
+	data["updatedAt"] = time.Now()
+	update := bson.M{
+		"$set": data,
+	}
+	collection := global.Mongo.Database("test").Collection("research_list")
+	if _, err = collection.UpdateOne(context.TODO(), filter, update); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r ResearchListService) Destroy(research *bson.M, id int) error {

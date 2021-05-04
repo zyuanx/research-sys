@@ -108,17 +108,16 @@ func (u UserController) Update(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	roleUpdateValidate := req.RoleUpdateValidate{}
-	if err = ctx.ShouldBindJSON(&roleUpdateValidate); err != nil {
+	user := models.User{}
+	if err = userServices.Retrieve(&user, id); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	role := models.Role{}
-	if err = roleServices.Retrieve(&role, id); err != nil {
+	if err = ctx.ShouldBindJSON(&user); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	if err = roleServices.Update(&role, &roleUpdateValidate); err != nil {
+	if err = userServices.Update(&user); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
