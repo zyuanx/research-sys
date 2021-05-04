@@ -17,7 +17,6 @@ type IRoleController interface {
 	Create(ctx *gin.Context)
 	Retrieve(ctx *gin.Context)
 	Update(ctx *gin.Context)
-	PartialUpdate(ctx *gin.Context)
 	Destroy(ctx *gin.Context)
 }
 type RoleController struct{}
@@ -37,7 +36,6 @@ func NewRoleController() RoleController {
 // @Failure 400 {object} res.Fail
 // @Router /api/role [get]
 func (r RoleController) List(ctx *gin.Context) {
-	var _ []models.Role
 	pg := req.PaginationQuery{}
 	if err := ctx.ShouldBindQuery(&pg); err != nil {
 		res.Success(ctx, nil, err.Error())
@@ -45,9 +43,9 @@ func (r RoleController) List(ctx *gin.Context) {
 	}
 	var roles []models.Role
 	var total int64
-	err := roleServices.List(pg.Page, pg.Size, &roles, &total)
-	if err != nil {
+	if err := roleServices.List(pg.Page, pg.Size, &roles, &total); err != nil {
 		res.Success(ctx, nil, err.Error())
+		return
 	}
 	res.Success(ctx, gin.H{
 		"page":    pg.Page,

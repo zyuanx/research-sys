@@ -1,11 +1,11 @@
 package middlewares
 
 import (
+	"errors"
 	"gin-research-sys/models"
 	"gin-research-sys/pkg/req"
 	"gin-research-sys/services"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"time"
@@ -43,7 +43,7 @@ func init() {
 			// 此处返回值类型interface{}与payloadFunc和authorizator的data类型必须一致,
 			// 否则会导致授权失败还不容易找到原因
 			return models.User{
-				Model: gorm.Model{
+				BaseModel: models.BaseModel{
 					ID: uint(claims[identityKey].(float64)),
 				},
 				Username: claims["username"].(string),
@@ -52,7 +52,7 @@ func init() {
 		Authenticator: func(c *gin.Context) (interface{}, error) {
 			login := req.LoginValidator{}
 			if err := c.ShouldBindJSON(&login); err != nil {
-				return nil, err
+				return nil, errors.New("payload is error")
 			}
 			user := models.User{
 				Username: login.Username,
@@ -67,8 +67,7 @@ func init() {
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
-			c.Set("user", user)
-			log.Println(user)
+			//c.Set("user", user)
 			return user, nil
 
 		},

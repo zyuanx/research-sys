@@ -4,7 +4,6 @@ base on Gin | GORM | gin-jwt | Casbin | MongoDB-Go-Driver | Swagger | Zap | Vipe
 
 ```
 .
-├── README.md
 ├── config
 │   ├── application.yml
 │   └── rbac_model.conf
@@ -16,8 +15,6 @@ base on Gin | GORM | gin-jwt | Casbin | MongoDB-Go-Driver | Swagger | Zap | Vipe
 │   ├── docs.go
 │   ├── swagger.json
 │   └── swagger.yaml
-├── go.mod
-├── go.sum
 ├── initialize
 │   ├── casbin.go
 │   ├── config.go
@@ -28,7 +25,6 @@ base on Gin | GORM | gin-jwt | Casbin | MongoDB-Go-Driver | Swagger | Zap | Vipe
 │   └── zap.go
 ├── logs
 │   └── 2021-05-03.log
-├── main.go
 ├── middlewares
 │   ├── casbin.go
 │   └── jwt.go
@@ -61,9 +57,13 @@ base on Gin | GORM | gin-jwt | Casbin | MongoDB-Go-Driver | Swagger | Zap | Vipe
 │   ├── research.go
 │   ├── role.go
 │   └── user.go
-└── services
-    ├── permission.go
-    ├── research.go
-    ├── role.go
-    └── user.go
+├── services
+│   ├── permission.go
+│   ├── research.go
+│   ├── role.go
+│   └── user.go
+├── README.md
+├── go.mod
+├── go.sum
+└── main.go
 ```

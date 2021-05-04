@@ -8,10 +8,9 @@ import (
 
 type IRoleService interface {
 	List(page int, size int, roles *[]models.Role, total *int64)
-	Create(role *models.Role) error
 	Retrieve(role *models.Role, id uint) error
+	Create(role *models.Role) error
 	Update(role *models.Role, id uint, data interface{}) error
-	PartialUpdate(role *models.Role, id uint, data interface{}) error
 	Destroy(role *models.Role, id uint) error
 }
 
@@ -23,24 +22,23 @@ func NewRoleService() RoleService {
 }
 
 func (r RoleService) List(page int, size int, roles *[]models.Role, total *int64) error {
-	var err error
-	if err = global.Mysql.Model(&models.Role{}).Count(total).
+	if err := global.Mysql.Model(&models.Role{}).Count(total).
 		Scopes(global.Paginate(page, size)).
-		Find(roles).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r RoleService) Create(role *models.Role) error {
-	if err := global.Mysql.Model(&models.Role{}).Create(role).Error; err != nil {
+		Find(&roles).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r RoleService) Retrieve(role interface{}, id int) error {
-	if err := global.Mysql.Model(&models.Role{}).First(role, id).Error; err != nil {
+	if err := global.Mysql.Model(&models.Role{}).First(&role, id).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r RoleService) Create(role *models.Role) error {
+	if err := global.Mysql.Model(&models.Role{}).Create(&role).Error; err != nil {
 		return err
 	}
 	return nil
@@ -52,10 +50,6 @@ func (r RoleService) Update(role *models.Role, data interface{}) error {
 		return err
 	}
 	return nil
-}
-
-func (r RoleService) PartialUpdate(role *models.Role, id int, data interface{}) error {
-	panic("implement me")
 }
 
 func (r RoleService) Destroy(id int) error {

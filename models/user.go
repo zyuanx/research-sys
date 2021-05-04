@@ -1,14 +1,12 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
-
 type User struct {
-	gorm.Model
-	Username  string  `gorm:"size:20;not null;uniqueIndex"`
-	Password  string  `gorm:"size:255;not null"`
-	Telephone string  `gorm:"size:11;"`
-	Avatar    string  `gorm:"size:255;"`
-	Roles     []*Role `gorm:"many2many:user_role"`
+	BaseModel
+	Username  string  `gorm:"size:20;not null;uniqueIndex" json:"username"`
+	Nickname  string  `gorm:"size:20;" json:"nickname"`
+	Password  string  `gorm:"size:255;not null" json:"-"`
+	Avatar    string  `gorm:"size:255;" json:"avatar"`
+	Telephone string  `gorm:"size:11;" json:"telephone"`
+	Email     string  `gorm:"size:255" json:"email"`
+	Roles     []*Role `gorm:"many2many:user_role" json:"roles"`
 }

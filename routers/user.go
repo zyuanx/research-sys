@@ -18,6 +18,8 @@ func RegisterUserRouter(r *gin.RouterGroup) {
 	auth := r.Group("")
 	auth.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
 	{
-		auth.GET("/info/:id", userController.GetInfo)
+		auth.GET("/info", userController.GetInfo)
+		auth.GET("", userController.List)
+		auth.GET("/:id", userController.Retrieve)
 	}
 }
