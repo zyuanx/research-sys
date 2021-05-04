@@ -5,13 +5,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterResearchRouter(r *gin.RouterGroup) {
+func RegisterPermissionRouter(r *gin.RouterGroup) {
 
-	controller := controllers.NewResearchController()
+	controller := controllers.NewPermissionController()
 
 	role := r.Group("")
 	//role.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
 	role.GET("", controller.List)
 	role.GET("/:id", controller.Retrieve)
+	role.POST("", controller.Create)
 
 }

@@ -24,6 +24,7 @@ func Routers() *gin.Engine {
 	apiGroup := r.Group("/api")
 	routers.RegisterUserRouter(apiGroup.Group("/user"))
 	routers.RegisterRoleRouter(apiGroup.Group("/role"))
+	routers.RegisterPermissionRouter(apiGroup.Group("/permission"))
 	routers.RegisterResearchRouter(apiGroup.Group("/research"))
 
 	user := r.Group("/api/v1")

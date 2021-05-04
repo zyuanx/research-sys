@@ -7,11 +7,11 @@ import (
 )
 
 type IRoleService interface {
-	List(page int, size int, roles *[]models.Role, total *int64)
-	Retrieve(role *models.Role, id uint) error
+	List(page int, size int, roles *[]models.Role, total *int64) error
+	Retrieve(role *models.Role, id int) error
 	Create(role *models.Role) error
-	Update(role *models.Role, id uint, data interface{}) error
-	Destroy(role *models.Role, id uint) error
+	Update(role *models.Role, id int, data interface{}) error
+	Destroy(role *models.Role, id int) error
 }
 
 type RoleService struct {

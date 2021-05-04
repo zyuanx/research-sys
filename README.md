@@ -1,6 +1,6 @@
 ## Research Sys
 
-base on Gin | GORM | gin-jwt | Casbin | MongoDB-Go-Driver | Swagger | Zap | Viper
+base on Gin | GORM | gin-jwt | Casbin | mongo-driver | Swagger | Zap | Viper
 
 ```
 .
@@ -8,6 +8,7 @@ base on Gin | GORM | gin-jwt | Casbin | MongoDB-Go-Driver | Swagger | Zap | Vipe
 │   ├── application.yml
 │   └── rbac_model.conf
 ├── controllers
+│   ├── permission.go
 │   ├── research.go
 │   ├── role.go
 │   └── user.go
@@ -27,8 +28,10 @@ base on Gin | GORM | gin-jwt | Casbin | MongoDB-Go-Driver | Swagger | Zap | Vipe
 │   └── 2021-05-03.log
 ├── middlewares
 │   ├── casbin.go
+│   ├── cors.go
 │   └── jwt.go
 ├── models
+│   ├── base.go
 │   ├── permission.go
 │   ├── research.go
 │   ├── role.go
@@ -54,6 +57,7 @@ base on Gin | GORM | gin-jwt | Casbin | MongoDB-Go-Driver | Swagger | Zap | Vipe
 │       ├── parseValidator.go
 │       └── s.go
 ├── routers
+│   ├── permission.go
 │   ├── research.go
 │   ├── role.go
 │   └── user.go

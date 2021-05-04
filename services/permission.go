@@ -6,27 +6,43 @@ import (
 )
 
 type IPermissionService interface {
-	List(permissions []*models.Permission) error
+	List(page int, size int, permissions *[]models.Permission, total *int64)
+	Retrieve(permission *models.Permission, id int) error
 	Create(permission *models.Permission) error
+	Update(permission *models.Permission, id int, data interface{}) error
+	Destroy(permission *models.Permission, id int) error
 }
-
-func (r PermissionService) List(permissions []*models.Permission, size int, page uint) error {
-	if err := global.Mysql.Limit(size).Offset(5).Find(&permissions).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r PermissionService) Create(role *models.Permission) error {
-	if err := global.Mysql.Create(role).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
 type PermissionService struct {
 }
 
 func NewPermissionService() PermissionService {
 	return PermissionService{}
+}
+
+func (p PermissionService) List(page int, size int, permissions *[]models.Permission, total *int64) error {
+	if err := global.Mysql.Model(&models.Permission{}).Count(total).
+		Scopes(global.Paginate(page, size)).
+		Find(&permissions).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p PermissionService) Retrieve(permission *models.Permission, id int) error {
+	if err := global.Mysql.Model(&models.Permission{}).First(&permission, id).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p PermissionService) Create(permission *models.Permission) error {
+	panic("implement me")
+}
+
+func (p PermissionService) Update(permission *models.Permission, id int, data interface{}) error {
+	panic("implement me")
+}
+
+func (p PermissionService) Destroy(permission *models.Permission, id int) error {
+	panic("implement me")
 }
