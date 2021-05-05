@@ -10,14 +10,13 @@ type IRoleService interface {
 	List(page int, size int, roles *[]models.Role, total *int64) error
 	Retrieve(role *models.Role, id int) error
 	Create(role *models.Role) error
-	Update(role *models.Role, id int, data interface{}) error
-	Destroy(role *models.Role, id int) error
+	Update(role *models.Role, data interface{}) error
+	Destroy(id int) error
 }
 
-type RoleService struct {
-}
+type RoleService struct {}
 
-func NewRoleService() RoleService {
+func NewRoleService() IRoleService {
 	return RoleService{}
 }
 
@@ -45,7 +44,7 @@ func (r RoleService) Create(role *models.Role) error {
 }
 
 func (r RoleService) Update(role *models.Role, data interface{}) error {
-	d, _ := utils.ToMap(data, "json")
+	d, _ := utils.Struct2MapInterface(data, "json")
 	if err := global.Mysql.Model(&role).Updates(&d).Error; err != nil {
 		return err
 	}

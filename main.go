@@ -1,10 +1,8 @@
 package main
 
-import (
-	"gin-research-sys/initialize"
-)
+import "gin-research-sys/initialize"
 
-// @title Research Sys API
+// @title Research sys API
 // @version 1.0
 // @description An example of gin
 // @termsOfService http://swagger.io/terms/

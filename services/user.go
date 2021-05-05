@@ -14,10 +14,9 @@ type IUserService interface {
 	Retrieve(user *models.User, id uint) error
 	Create(user *models.User) error
 	Update(user *models.User, data interface{}) error
-	Destroy(user *models.User, id uint) error
+	Destroy(id uint) error
 }
-type UserService struct {
-}
+type UserService struct {}
 
 func NewUserService() UserService {
 	return UserService{}
@@ -64,16 +63,22 @@ func (u UserService) Retrieve(user *models.User, id int) error {
 }
 
 func (u UserService) Create(user *models.User) error {
-	panic("implement me")
-}
-
-func (u UserService) Update(user *models.User) error {
-	if err := global.Mysql.Save(&user).Error; err != nil {
+	if err := global.Mysql.Create(&user).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (u UserService) Destroy(user *models.User, id int) error {
-	panic("implement me")
+func (u UserService) Update(user *models.User) error {
+	if err := global.Mysql.Omit("username").Save(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u UserService) Destroy(id int) error {
+	if err := global.Mysql.Delete(&models.User{}, id).Error; err != nil {
+		return err
+	}
+	return nil
 }

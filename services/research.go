@@ -12,23 +12,21 @@ import (
 	"time"
 )
 
-type ResearchListService struct {
-}
+type ResearchListService struct {}
 
-func NewResearchListService() ResearchListService {
+func NewResearchListService() IResearchListService {
 	return ResearchListService{}
 }
 
 type IResearchListService interface {
-	List(page int, size int, research *[]bson.M, total *int64) ([]*bson.M, error)
-	Create(research *bson.M) error
-	Update(research *bson.M, id int, data interface{}) error
-	Destroy(research *bson.M, id int) error
+	List(page int64, size int64, total *int64) ([]*bson.M, error)
 	Retrieve(research *bson.M, id string) error
+	Create(research *models.ResearchList) error
+	Update(id string, data map[string]interface{}) error
+	Destroy(research *bson.M, id int) error
 }
 
 func (r ResearchListService) List(page int64, size int64, total *int64) ([]*bson.M, error) {
-
 	findOptions := options.Find()
 	findOptions.SetLimit(size)
 	if page > 0 {
@@ -57,6 +55,7 @@ func (r ResearchListService) List(page int64, size int64, total *int64) ([]*bson
 	}
 	return results, nil
 }
+
 func (r ResearchListService) Retrieve(research *bson.M, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {

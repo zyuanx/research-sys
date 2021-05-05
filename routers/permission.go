@@ -14,5 +14,6 @@ func RegisterPermissionRouter(r *gin.RouterGroup) {
 	role.GET("", controller.List)
 	role.GET("/:id", controller.Retrieve)
 	role.POST("", controller.Create)
+	role.PUT("/:id", controller.Update)
 
 }

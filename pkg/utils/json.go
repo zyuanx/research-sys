@@ -6,22 +6,8 @@ import (
 	"reflect"
 )
 
-func Struct2MapInterface(ori interface{}) map[string]interface{} {
 
-	m := make(map[string]interface{})
-
-	elem := reflect.ValueOf(&ori).Elem()
-
-	relType := elem.Type()
-
-	for i := 0; i < relType.NumField(); i++ {
-		m[relType.Field(i).Name] = elem.Field(i).Interface()
-	}
-	return m
-}
-
-// ToMap 结构体转为Map[string]interface{}
-func ToMap(in interface{}, tagName string) (map[string]interface{}, error) {
+func Struct2MapInterface(in interface{}, tagName string) (map[string]interface{}, error) {
 	out := make(map[string]interface{})
 
 	v := reflect.ValueOf(in)

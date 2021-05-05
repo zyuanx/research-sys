@@ -1,9 +1,9 @@
 package controllers
 
 import (
+	"gin-research-sys/controllers/req"
+	"gin-research-sys/controllers/res"
 	"gin-research-sys/models"
-	"gin-research-sys/pkg/req"
-	"gin-research-sys/pkg/res"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -21,7 +21,7 @@ type IRoleController interface {
 }
 type RoleController struct{}
 
-func NewRoleController() RoleController {
+func NewRoleController() IRoleController {
 	return RoleController{}
 }
 
@@ -98,6 +98,7 @@ func (r RoleController) Update(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
+
 	roleUpdateValidate := req.RoleUpdateValidate{}
 	if err = ctx.ShouldBindJSON(&roleUpdateValidate); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
@@ -114,10 +115,6 @@ func (r RoleController) Update(ctx *gin.Context) {
 	}
 
 	res.Success(ctx, gin.H{"role": role}, "")
-}
-
-func (r RoleController) PartialUpdate(ctx *gin.Context) {
-	panic("implement me")
 }
 
 func (r RoleController) Destroy(ctx *gin.Context) {

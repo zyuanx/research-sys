@@ -4,13 +4,19 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type RegisterValidator struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
 type LoginValidator struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+type UserCreateReq struct {
+	Username  string `json:"username" binding:"required"`
+	Password1 string `json:"password1" binding:"required"`
+	Password2 string `json:"password2" binding:"required"`
+	Nickname  string `json:"nickname"`
+	Telephone string `json:"telephone"`
+	Email     string `json:"email"`
+	Roles     []int  `json:"roles"`
 }
 
 func (r *LoginValidator) GetError(err error) string {

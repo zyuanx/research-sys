@@ -3,7 +3,6 @@ package middlewares
 import (
 	"errors"
 	"gin-research-sys/models"
-	"gin-research-sys/pkg/req"
 	"gin-research-sys/services"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -50,7 +49,7 @@ func init() {
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			login := req.LoginValidator{}
+			login := Login{}
 			if err := c.ShouldBindJSON(&login); err != nil {
 				return nil, errors.New("payload is error")
 			}

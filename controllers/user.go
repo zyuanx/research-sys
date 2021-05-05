@@ -1,25 +1,18 @@
 package controllers
 
 import (
+	"gin-research-sys/controllers/req"
+	"gin-research-sys/controllers/res"
 	"gin-research-sys/middlewares"
 	"gin-research-sys/models"
-	"gin-research-sys/pkg/req"
-	"gin-research-sys/pkg/res"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"strconv"
 )
 
-type UserController struct {
-}
-
-func NewUserController() IUserController {
-	return UserController{}
-}
-
 type IUserController interface {
-	Register(ctx *gin.Context)
 	GetInfo(ctx *gin.Context)
 
 	List(ctx *gin.Context)
@@ -29,31 +22,13 @@ type IUserController interface {
 	Destroy(ctx *gin.Context)
 }
 
-var userServices = services.NewUserService()
+type UserController struct{}
 
-func (u UserController) Register(ctx *gin.Context) {
-	registerValidator := req.RegisterValidator{}
-	if err := ctx.ShouldBindJSON(&registerValidator); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
-		return
-	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerValidator.Password), bcrypt.DefaultCost)
-	if err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
-		return
-	}
-	user := models.User{
-		Username: registerValidator.Username,
-		Password: string(hashedPassword),
-	}
-
-	err = userServices.UserRegister(&user)
-	if err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
-		return
-	}
-	res.Success(ctx, gin.H{"user": user}, "")
+func NewUserController() IUserController {
+	return UserController{}
 }
+
+var userServices = services.NewUserService()
 
 func (u UserController) GetInfo(ctx *gin.Context) {
 	user := middlewares.JWTAuthMiddleware.IdentityHandler(ctx).(models.User)
@@ -98,31 +73,76 @@ func (u UserController) Retrieve(ctx *gin.Context) {
 }
 
 func (u UserController) Create(ctx *gin.Context) {
-	panic("implement me")
+	ucq := req.UserCreateReq{}
+
+	if err := ctx.ShouldBindJSON(&ucq); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "payload is error")
+		return
+	}
+	if ucq.Password1 != ucq.Password2 {
+		res.Fail(ctx, gin.H{}, "the two passwords don't match ")
+		return
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(ucq.Password1), bcrypt.DefaultCost)
+	if err != nil {
+		res.Fail(ctx, gin.H{}, err.Error())
+		return
+	}
+	user := models.User{
+		Username:  ucq.Username,
+		Nickname:  ucq.Nickname,
+		Password:  string(hashedPassword),
+		Telephone: ucq.Telephone,
+		Email:     ucq.Email,
+	}
+	if err = userServices.Create(&user); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "create fail")
+		return
+	}
+	res.Success(ctx, gin.H{}, "create success")
 }
 
 func (u UserController) Update(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "param error")
 		return
 	}
 	user := models.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
 	if err = ctx.ShouldBindJSON(&user); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "payload error")
 		return
 	}
 	if err = userServices.Update(&user); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		res.Success(ctx, gin.H{}, "update fail")
 		return
 	}
+	res.Success(ctx, gin.H{"user": user}, "update success")
 }
 
 func (u UserController) Destroy(ctx *gin.Context) {
-	panic("implement me")
+	idString := ctx.Param("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "param error")
+		return
+	}
+	if err = userServices.Destroy(id); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "delete fail")
+		return
+	}
+	res.Success(ctx, gin.H{}, "delete success")
 }
