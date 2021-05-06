@@ -6,27 +6,20 @@ import (
 )
 
 type IUserService interface {
-	UserRegister(user *models.User) error
 	UserLogin(user *models.User) error
-	UserInfo(user *models.User, id uint64) error
+	UserInfo(user *models.User) error
+	UserPasswordReset(user *models.User) error
 
 	List(page int, size int, users *[]models.User, total *int64) error
-	Retrieve(user *models.User, id uint) error
+	Retrieve(user *models.User, id int) error
 	Create(user *models.User) error
-	Update(user *models.User, data interface{}) error
-	Destroy(id uint) error
+	Update(user *models.User) error
+	Destroy(id int) error
 }
-type UserService struct {}
+type UserService struct{}
 
-func NewUserService() UserService {
+func NewUserService() IUserService {
 	return UserService{}
-}
-
-func (u UserService) UserRegister(user *models.User) error {
-	if err := global.Mysql.Create(user).Error; err != nil {
-		return err
-	}
-	return nil
 }
 
 func (u UserService) UserLogin(user *models.User) error {
@@ -45,7 +38,9 @@ func (u UserService) UserInfo(user *models.User) error {
 	}
 	return nil
 }
-
+func (u UserService) UserPasswordReset(user *models.User) error {
+	panic("implement me")
+}
 func (u UserService) List(page int, size int, users *[]models.User, total *int64) error {
 	if err := global.Mysql.Model(&models.User{}).Count(total).
 		Scopes(global.Paginate(page, size)).

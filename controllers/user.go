@@ -14,6 +14,8 @@ import (
 
 type IUserController interface {
 	GetInfo(ctx *gin.Context)
+	ResetPassword(ctx *gin.Context)
+	ChangePassword(ctx *gin.Context)
 
 	List(ctx *gin.Context)
 	Retrieve(ctx *gin.Context)
@@ -38,6 +40,74 @@ func (u UserController) GetInfo(ctx *gin.Context) {
 	}
 	res.Success(ctx, gin.H{"user": user}, "")
 }
+func (u UserController) ResetPassword(ctx *gin.Context) {
+	idString := ctx.Param("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "missing param")
+	}
+	user := models.User{}
+	if err = userServices.Retrieve(&user, id); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "record not found")
+		return
+	}
+	//uprr := req.UserResetPasswordReq{}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println(err.Error())
+		res.Success(ctx, gin.H{}, "generate error")
+		return
+	}
+	user.Password = string(hashedPassword)
+	if err = userServices.Update(&user); err != nil {
+		log.Println(err.Error())
+		res.Success(ctx, gin.H{}, "update fail")
+		return
+	}
+	res.Success(ctx, gin.H{}, "update success")
+}
+
+func (u UserController) ChangePassword(ctx *gin.Context) {
+
+	passwordReq := req.UserChangePasswordReq{}
+	if err := ctx.ShouldBindJSON(&passwordReq); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "payload is error")
+		return
+	}
+	if passwordReq.Password1 != passwordReq.Password2 {
+		res.Fail(ctx, gin.H{}, "the two passwords don't match")
+		return
+	}
+	user := models.User{}
+	ins := middlewares.JWTAuthMiddleware.IdentityHandler(ctx).(models.User)
+	if err := userServices.Retrieve(&user, int(ins.ID)); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "record not found")
+		return
+	}
+	log.Println(passwordReq)
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordReq.Password)); err != nil {
+		res.Fail(ctx, gin.H{}, "the password is wrong")
+		return
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordReq.Password1), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println(err.Error())
+		res.Success(ctx, gin.H{}, "generate error")
+		return
+	}
+	user.Password = string(hashedPassword)
+	if err := userServices.Update(&user); err != nil {
+		log.Println(err.Error())
+		res.Success(ctx, gin.H{}, "update fail")
+		return
+	}
+	res.Success(ctx, gin.H{}, "update success")
+
+}
 
 func (u UserController) List(ctx *gin.Context) {
 	pg := req.PaginationQuery{}
@@ -58,11 +128,13 @@ func (u UserController) List(ctx *gin.Context) {
 		"total":   total,
 	}, "")
 }
+
 func (u UserController) Retrieve(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "missing param")
 	}
 	user := models.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
@@ -81,7 +153,7 @@ func (u UserController) Create(ctx *gin.Context) {
 		return
 	}
 	if ucq.Password1 != ucq.Password2 {
-		res.Fail(ctx, gin.H{}, "the two passwords don't match ")
+		res.Fail(ctx, gin.H{}, "the two passwords don't match")
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(ucq.Password1), bcrypt.DefaultCost)
@@ -109,7 +181,7 @@ func (u UserController) Update(ctx *gin.Context) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "param error")
+		res.Fail(ctx, gin.H{}, "missing param")
 		return
 	}
 	user := models.User{}
@@ -128,7 +200,7 @@ func (u UserController) Update(ctx *gin.Context) {
 		res.Success(ctx, gin.H{}, "update fail")
 		return
 	}
-	res.Success(ctx, gin.H{"user": user}, "update success")
+	res.Success(ctx, gin.H{}, "update success")
 }
 
 func (u UserController) Destroy(ctx *gin.Context) {

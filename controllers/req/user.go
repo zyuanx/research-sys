@@ -19,6 +19,14 @@ type UserCreateReq struct {
 	Roles     []int  `json:"roles"`
 }
 
+type UserResetPasswordReq struct {
+	Password string `json:"password" binding:"required"`
+}
+type UserChangePasswordReq struct {
+	Password string `json:"password" binding:"required"`
+	Password1 string `json:"password1" binding:"required"`
+	Password2 string `json:"password2" binding:"required"`
+}
 func (r *LoginValidator) GetError(err error) string {
 	errors := err.(validator.ValidationErrors)
 	for _, e := range errors {
