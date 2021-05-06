@@ -21,6 +21,7 @@ func NewPermissionService() IPermissionService {
 func (p PermissionService) List(page int, size int, permissions *[]models.Permission, total *int64) error {
 	if err := global.Mysql.Model(&models.Permission{}).Count(total).
 		Scopes(global.Paginate(page, size)).
+		Order("`permissions`.`group`").Order("`permissions`.`index`").
 		Find(&permissions).Error; err != nil {
 		return err
 	}
