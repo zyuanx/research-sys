@@ -5,8 +5,8 @@ type CreateRoleValidate struct {
 	Desc  string `json:"desc" binding:"required"`
 }
 
-
-type RoleUpdateValidate struct {
-	Title string `json:"title"`
-	Desc  string `json:"desc"`
+type RoleUpdateReq struct {
+	Title       string `json:"title"`
+	Desc        string `json:"desc"`
+	Permissions []int  `json:"permissions"`
 }

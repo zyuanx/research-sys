@@ -33,19 +33,32 @@ func NewUserController() IUserController {
 var userServices = services.NewUserService()
 
 func (u UserController) GetInfo(ctx *gin.Context) {
-	user := middlewares.JWTAuthMiddleware.IdentityHandler(ctx).(models.User)
-	err := userServices.UserInfo(&user)
-	if err != nil {
-		return
+	id := middlewares.JWTAuthMiddleware.IdentityHandler(ctx).(models.User).ID
+	user := models.User{}
+	if err := userServices.Retrieve(&user, int(id)); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "get info error")
 	}
-	res.Success(ctx, gin.H{"user": user}, "")
+	var roles []string
+	if err := userServices.ListRole(&user, &roles); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "get roles error")
+	}
+
+	res.Success(ctx, gin.H{"user": gin.H{
+		"username":  user.Username,
+		"nickname":  user.Nickname,
+		"telephone": user.Telephone,
+		"email":     user.Email,
+		"roles":     roles,
+	}}, "")
 }
 func (u UserController) ResetPassword(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "missing param")
+		res.Fail(ctx, gin.H{}, "param error")
 	}
 	user := models.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
@@ -134,14 +147,27 @@ func (u UserController) Retrieve(ctx *gin.Context) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "missing param")
+		res.Fail(ctx, gin.H{}, "param error")
 	}
 	user := models.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	res.Success(ctx, gin.H{"user": user}, "")
+	var roles []string
+	if err := userServices.ListRole(&user, &roles); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "get roles error")
+	}
+
+	res.Success(ctx, gin.H{"user": gin.H{
+		"id":        user.ID,
+		"username":  user.Username,
+		"nickname":  user.Nickname,
+		"telephone": user.Telephone,
+		"email":     user.Email,
+		"roles":     roles,
+	}}, "")
 }
 
 func (u UserController) Create(ctx *gin.Context) {
@@ -181,7 +207,13 @@ func (u UserController) Update(ctx *gin.Context) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "missing param")
+		res.Fail(ctx, gin.H{}, "param error")
+		return
+	}
+	updateReq := req.UserUpdateReq{}
+	if err = ctx.ShouldBindJSON(&updateReq); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "payload error")
 		return
 	}
 	user := models.User{}
@@ -190,14 +222,17 @@ func (u UserController) Update(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
-	if err = ctx.ShouldBindJSON(&user); err != nil {
-		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "payload error")
-		return
-	}
+	user.Nickname = updateReq.Nickname
+	user.Telephone = updateReq.Telephone
+	user.Email = updateReq.Email
 	if err = userServices.Update(&user); err != nil {
 		log.Println(err.Error())
-		res.Success(ctx, gin.H{}, "update fail")
+		res.Fail(ctx, gin.H{}, "update fail")
+		return
+	}
+	if err = userServices.UpdateRole(&user, updateReq.Roles); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "update fail")
 		return
 	}
 	res.Success(ctx, gin.H{}, "update success")

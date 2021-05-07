@@ -3,18 +3,20 @@ package services
 import (
 	"gin-research-sys/models"
 	"gin-research-sys/pkg/global"
-	"gin-research-sys/pkg/utils"
 )
 
 type IRoleService interface {
 	List(page int, size int, roles *[]models.Role, total *int64) error
 	Retrieve(role *models.Role, id int) error
 	Create(role *models.Role) error
-	Update(role *models.Role, data interface{}) error
+	Update(role *models.Role) error
 	Destroy(id int) error
+
+	ListPermission(role *models.Role, permissions *[]int) error
+	UpdatePermission(role *models.Role, ids []int) error
 }
 
-type RoleService struct {}
+type RoleService struct{}
 
 func NewRoleService() IRoleService {
 	return RoleService{}
@@ -30,7 +32,9 @@ func (r RoleService) List(page int, size int, roles *[]models.Role, total *int64
 }
 
 func (r RoleService) Retrieve(role *models.Role, id int) error {
-	if err := global.Mysql.Model(&models.Role{}).First(&role, id).Error; err != nil {
+	if err := global.Mysql.Model(&models.Role{}).
+		Preload("Permissions").
+		First(&role, id).Error; err != nil {
 		return err
 	}
 	return nil
@@ -43,9 +47,8 @@ func (r RoleService) Create(role *models.Role) error {
 	return nil
 }
 
-func (r RoleService) Update(role *models.Role, data interface{}) error {
-	d, _ := utils.Struct2MapInterface(data, "json")
-	if err := global.Mysql.Model(&role).Updates(&d).Error; err != nil {
+func (r RoleService) Update(role *models.Role) error {
+	if err := global.Mysql.Save(&role).Error; err != nil {
 		return err
 	}
 	return nil
@@ -53,6 +56,30 @@ func (r RoleService) Update(role *models.Role, data interface{}) error {
 
 func (r RoleService) Destroy(id int) error {
 	if err := global.Mysql.Delete(&models.Role{}, id).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r RoleService) ListPermission(role *models.Role, permissions *[]int) error {
+	var t []int
+	for _, value := range role.Permissions {
+		t = append(t, int(value.ID))
+	}
+	*permissions = t
+	return nil
+}
+
+
+func (r RoleService) UpdatePermission(role *models.Role, ids []int) error {
+	var permissions []models.Permission
+	if err := global.Mysql.Model(&models.Permission{}).
+		Find(&permissions, ids).Error; err != nil {
+		return err
+	}
+	if err := global.Mysql.Model(&role).
+		Association("Permissions").
+		Replace(permissions); err != nil {
 		return err
 	}
 	return nil

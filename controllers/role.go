@@ -88,20 +88,32 @@ func (r RoleController) Retrieve(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	res.Success(ctx, gin.H{"role": role}, "")
+	var permissions []int
+	if err := roleServices.ListPermission(&role, &permissions); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "get roles error")
+	}
+
+	res.Success(ctx, gin.H{"role": gin.H{
+		"id":          role.ID,
+		"title":       role.Title,
+		"desc":        role.Desc,
+		"permissions": permissions,
+	}}, "")
 }
 
 func (r RoleController) Update(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "param error")
 		return
 	}
-
-	roleUpdateValidate := req.RoleUpdateValidate{}
-	if err = ctx.ShouldBindJSON(&roleUpdateValidate); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+	updateReq := req.RoleUpdateReq{}
+	if err = ctx.ShouldBindJSON(&updateReq); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "payload error")
 		return
 	}
 	role := models.Role{}
@@ -109,12 +121,19 @@ func (r RoleController) Update(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	if err = roleServices.Update(&role, &roleUpdateValidate); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+	role.Title = updateReq.Title
+	role.Desc = updateReq.Desc
+	if err = roleServices.Update(&role); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "update fail")
 		return
 	}
-
-	res.Success(ctx, gin.H{"role": role}, "")
+	if err = roleServices.UpdatePermission(&role, updateReq.Permissions); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "update fail")
+		return
+	}
+	res.Success(ctx, gin.H{}, "update success")
 }
 
 func (r RoleController) Destroy(ctx *gin.Context) {

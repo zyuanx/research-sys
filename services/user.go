@@ -7,7 +7,6 @@ import (
 
 type IUserService interface {
 	UserLogin(user *models.User) error
-	UserInfo(user *models.User) error
 	UserPasswordReset(user *models.User) error
 
 	List(page int, size int, users *[]models.User, total *int64) error
@@ -15,6 +14,9 @@ type IUserService interface {
 	Create(user *models.User) error
 	Update(user *models.User) error
 	Destroy(id int) error
+
+	ListRole(user *models.User, roles *[]string) error
+	UpdateRole(user *models.User, ids []int) error
 }
 type UserService struct{}
 
@@ -31,13 +33,6 @@ func (u UserService) UserLogin(user *models.User) error {
 	return nil
 }
 
-func (u UserService) UserInfo(user *models.User) error {
-	if err := global.Mysql.Model(&models.User{}).
-		Preload("Roles").First(&user).Error; err != nil {
-		return err
-	}
-	return nil
-}
 func (u UserService) UserPasswordReset(user *models.User) error {
 	panic("implement me")
 }
@@ -51,7 +46,9 @@ func (u UserService) List(page int, size int, users *[]models.User, total *int64
 }
 
 func (u UserService) Retrieve(user *models.User, id int) error {
-	if err := global.Mysql.Model(&models.User{}).First(&user, id).Error; err != nil {
+	if err := global.Mysql.Model(&models.User{}).
+		Preload("Roles").
+		First(&user, id).Error; err != nil {
 		return err
 	}
 	return nil
@@ -65,7 +62,7 @@ func (u UserService) Create(user *models.User) error {
 }
 
 func (u UserService) Update(user *models.User) error {
-	if err := global.Mysql.Omit("username").Save(&user).Error; err != nil {
+	if err := global.Mysql.Save(&user).Error; err != nil {
 		return err
 	}
 	return nil
@@ -73,6 +70,26 @@ func (u UserService) Update(user *models.User) error {
 
 func (u UserService) Destroy(id int) error {
 	if err := global.Mysql.Delete(&models.User{}, id).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u UserService) ListRole(user *models.User, roles *[]string) error {
+	var t []string
+	for _, value := range user.Roles {
+		t = append(t, value.Title)
+	}
+	*roles = t
+	return nil
+}
+
+func (u UserService) UpdateRole(user *models.User, ids []int) error {
+	var roles []models.Role
+	if err := global.Mysql.Model(&models.Role{}).Find(&roles, ids).Error; err != nil {
+		return err
+	}
+	if err := global.Mysql.Model(&user).Association("Roles").Replace(roles); err != nil {
 		return err
 	}
 	return nil
