@@ -53,6 +53,7 @@ func (u UserController) GetInfo(ctx *gin.Context) {
 		"roles":     roles,
 	}}, "")
 }
+
 func (u UserController) ResetPassword(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
@@ -154,8 +155,8 @@ func (u UserController) Retrieve(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
-	var roles []string
-	if err := userServices.ListRole(&user, &roles); err != nil {
+	var roles []int
+	if err := userServices.ListRole2(&user, &roles); err != nil {
 		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "get roles error")
 	}

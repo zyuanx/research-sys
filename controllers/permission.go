@@ -45,7 +45,6 @@ func (p PermissionController) List(ctx *gin.Context) {
 	}, "")
 }
 
-
 func (p PermissionController) Retrieve(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
@@ -78,7 +77,36 @@ func (p PermissionController) Create(ctx *gin.Context) {
 	res.Success(ctx, gin.H{}, "create success")
 }
 func (p PermissionController) Update(ctx *gin.Context) {
-	panic("implement me")
+	idString := ctx.Param("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "param is error")
+		return
+	}
+	updateReq := req.PermissionUpdateReq{}
+	if err = ctx.ShouldBindJSON(&updateReq); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "payload is error")
+		return
+	}
+	permission := models.Permission{}
+	if err = permissionServices.Retrieve(&permission, id); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "retrieve fail")
+		return
+	}
+	permission.Group = updateReq.Group
+	permission.Path = updateReq.Path
+	permission.Desc = updateReq.Desc
+	permission.Method = updateReq.Method
+	permission.Index = updateReq.Index
+	if err = permissionServices.Update(&permission); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "update fail")
+		return
+	}
+	res.Success(ctx, gin.H{}, "update success")
 }
 
 func (p PermissionController) Destroy(ctx *gin.Context) {
@@ -86,7 +114,7 @@ func (p PermissionController) Destroy(ctx *gin.Context) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "param error")
+		res.Fail(ctx, gin.H{}, "param is error")
 		return
 	}
 	if err = permissionServices.Destroy(id); err != nil {

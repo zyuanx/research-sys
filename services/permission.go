@@ -9,7 +9,7 @@ type IPermissionService interface {
 	List(page int, size int, permissions *[]models.Permission, total *int64) error
 	Retrieve(permission *models.Permission, id int) error
 	Create(permission *models.Permission) error
-	Update(permission *models.Permission, id int, data interface{}) error
+	Update(permission *models.Permission) error
 	Destroy(id int) error
 }
 type PermissionService struct{}
@@ -42,8 +42,11 @@ func (p PermissionService) Create(permission *models.Permission) error {
 	return nil
 }
 
-func (p PermissionService) Update(permission *models.Permission, id int, data interface{}) error {
-	panic("implement me")
+func (p PermissionService) Update(permission *models.Permission) error {
+	if err := global.Mysql.Save(&permission).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (p PermissionService) Destroy(id int) error {

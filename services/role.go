@@ -74,7 +74,7 @@ func (r RoleService) ListPermission(role *models.Role, permissions *[]int) error
 func (r RoleService) UpdatePermission(role *models.Role, ids []int) error {
 	var permissions []models.Permission
 	if err := global.Mysql.Model(&models.Permission{}).
-		Find(&permissions, ids).Error; err != nil {
+		Find(&permissions, "id IN ?", ids).Error; err != nil {
 		return err
 	}
 	if err := global.Mysql.Model(&role).

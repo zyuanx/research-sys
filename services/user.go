@@ -16,6 +16,7 @@ type IUserService interface {
 	Destroy(id int) error
 
 	ListRole(user *models.User, roles *[]string) error
+	ListRole2(user *models.User, roles *[]int) error
 	UpdateRole(user *models.User, ids []int) error
 }
 type UserService struct{}
@@ -83,10 +84,18 @@ func (u UserService) ListRole(user *models.User, roles *[]string) error {
 	*roles = t
 	return nil
 }
+func (u UserService) ListRole2(user *models.User, roles *[]int) error {
+	var t []int
+	for _, value := range user.Roles {
+		t = append(t, int(value.ID))
+	}
+	*roles = t
+	return nil
+}
 
 func (u UserService) UpdateRole(user *models.User, ids []int) error {
 	var roles []models.Role
-	if err := global.Mysql.Model(&models.Role{}).Find(&roles, ids).Error; err != nil {
+	if err := global.Mysql.Model(&models.Role{}).Find(&roles, "id IN ?", ids).Error; err != nil {
 		return err
 	}
 	if err := global.Mysql.Model(&user).Association("Roles").Replace(roles); err != nil {
