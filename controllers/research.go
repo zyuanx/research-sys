@@ -3,10 +3,12 @@ package controllers
 import (
 	"gin-research-sys/controllers/req"
 	"gin-research-sys/controllers/res"
+	"gin-research-sys/middlewares"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 )
 
@@ -17,25 +19,25 @@ type IResearchController interface {
 	Update(ctx *gin.Context)
 	Destroy(ctx *gin.Context)
 }
-type ResearchController struct {
-}
+type ResearchController struct{}
 
 func NewResearchController() ResearchController {
 	return ResearchController{}
 }
 
-var researchServices = services.NewResearchListService()
+var researchServices = services.NewResearchService()
+var researchMgoServices = services.NewResearchMgoService()
 
 func (r ResearchController) List(ctx *gin.Context) {
 	pg := req.PaginationQuery{}
 	if err := ctx.ShouldBindQuery(&pg); err != nil {
-		res.Success(ctx, nil, err.Error())
+		res.Fail(ctx, nil, err.Error())
 		return
 	}
 
+	var researches []models.Research
 	var total int64
-	researches, err := researchServices.List(int64(pg.Page), int64(pg.Size), &total)
-	if err != nil {
+	if err := researchServices.List(pg.Page, pg.Size, &researches, &total); err != nil {
 		res.Success(ctx, nil, err.Error())
 		return
 	}
@@ -57,16 +59,44 @@ func (r ResearchController) Retrieve(ctx *gin.Context) {
 }
 
 func (r ResearchController) Create(ctx *gin.Context) {
-	research := models.ResearchList{}
-	if err := ctx.ShouldBindJSON(&research); err != nil {
+	createReq := req.ResearchCreateReq{}
+	if err := ctx.ShouldBindJSON(&createReq); err != nil {
 		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "payload error")
+		return
 	}
-	if err := researchServices.Create(&research); err != nil {
+	// there needs mongo transaction
+	researchMgo := models.ResearchMgo{
+		FieldsValue: createReq.FieldsValue,
+		Detail:      createReq.Detail,
+		Rules:       createReq.Rules,
+	}
+	result, err := researchMgoServices.Create(&researchMgo)
+	if err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "create error")
+		return
+	}
+	user := middlewares.JWTAuthMiddleware.IdentityHandler(ctx).(models.User)
+	research := models.Research{
+		Title:  createReq.Title,
+		Desc:   createReq.Desc,
+		Once:   createReq.Once,
+		UserID: int(user.ID),
+	}
+	if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
+		research.ResearchID = oid.String()
+	} else {
+		log.Println(ok)
+		res.Fail(ctx, gin.H{}, "create fail")
+		return
+	}
+	if err = researchServices.Create(&research); err != nil {
 		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "create fail")
+		return
 	}
-	res.Success(ctx, gin.H{"research": research}, "create success")
+	res.Success(ctx, gin.H{}, "create success")
 }
 
 func (r ResearchController) Update(ctx *gin.Context) {

@@ -1,16 +1,18 @@
 package models
 
-import "time"
+type Research struct {
+	BaseModel
+	Title      string `gorm:"size:32,not null" json:"title"`
+	Desc       string `gorm:"size:255" json:"desc"`
+	Status     int    `gorm:"default:0" json:"status"`
+	Once       int    `gorm:"default:0" json:"once"`
+	ResearchID string `gorm:"size:128;index" json:"-"`
+	UserID     int    `json:"-"`
+	User       User   `json:"-"`
+}
 
-type ResearchList struct {
-	CreatedAt   time.Time                `json:"createdAt" bson:"createdAt"`
-	UpdatedAt   time.Time                `json:"updatedAt" bson:"updatedAt"`
-	DeletedAt   time.Time                `json:"deletedAt" bson:"deletedAt"`
-	Title       string                   `json:"title"`
-	Desc        string                   `json:"desc"`
-	FieldsValue map[string]interface{}   `json:"fieldsValue" bson:"fieldsValue"`
-	Detail      []map[string]interface{} `json:"detail"`
-	Rules       map[string]interface{}   `json:"rules"`
-	Confirm     string                   `json:"confirm"`
-	Status      int                      `json:"status"`
+type ResearchMgo struct {
+	FieldsValue map[string]interface{}   `json:"fieldsValue" bson:"fieldsValue" binding:"required"`
+	Detail      []map[string]interface{} `json:"detail" bson:"detail" binding:"required"`
+	Rules       map[string]interface{}   `json:"rules" bson:"rules" binding:"required"`
 }

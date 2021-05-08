@@ -38,7 +38,7 @@ func NewRoleController() IRoleController {
 func (r RoleController) List(ctx *gin.Context) {
 	pg := req.PaginationQuery{}
 	if err := ctx.ShouldBindQuery(&pg); err != nil {
-		res.Success(ctx, nil, err.Error())
+		res.Fail(ctx, nil, err.Error())
 		return
 	}
 	var roles []models.Role

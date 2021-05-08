@@ -26,7 +26,6 @@ func NewUserService() IUserService {
 }
 
 func (u UserService) UserLogin(user *models.User) error {
-
 	result := global.Mysql.Where("username = ?", user.Username).First(&user)
 	if result.Error != nil {
 		return result.Error

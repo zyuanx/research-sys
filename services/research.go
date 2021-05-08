@@ -7,56 +7,60 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 	"time"
 )
 
-type ResearchListService struct {}
+type ResearchService struct{}
 
-func NewResearchListService() IResearchListService {
-	return ResearchListService{}
+func NewResearchService() IResearchService {
+	return ResearchService{}
 }
 
-type IResearchListService interface {
-	List(page int64, size int64, total *int64) ([]*bson.M, error)
+type IResearchService interface {
+	List(page int, size int, researches *[]models.Research, total *int64) error
 	Retrieve(research *bson.M, id string) error
-	Create(research *models.ResearchList) error
+	Create(research *models.Research) error
 	Update(id string, data map[string]interface{}) error
 	Destroy(research *bson.M, id int) error
 }
 
-func (r ResearchListService) List(page int64, size int64, total *int64) ([]*bson.M, error) {
-	findOptions := options.Find()
-	findOptions.SetLimit(size)
-	if page > 0 {
-		findOptions.SetSkip(size * (page - 1))
+func (r ResearchService) List(page int, size int, researches *[]models.Research, total *int64) error {
+	if err := global.Mysql.Model(&models.Research{}).Count(total).
+		Scopes(global.Paginate(page, size)).
+		Find(&researches).Error; err != nil {
+		return err
 	}
-
-	collection := global.Mongo.Database("test").Collection("research_list")
-	var err error
-	*total, err = collection.CountDocuments(context.TODO(), bson.M{})
-	if err != nil {
-		return nil, err
-	}
-	var cur *mongo.Cursor
-	cur, err = collection.Find(context.TODO(), bson.M{}, findOptions)
-	if err != nil {
-		return nil, err
-	}
-	var results []*bson.M
-	for cur.Next(context.TODO()) {
-		var elem bson.M
-		err = cur.Decode(&elem)
-		if err != nil {
-			log.Fatal(err)
-		}
-		results = append(results, &elem)
-	}
-	return results, nil
+	return nil
+	//findOptions := options.Find()
+	//findOptions.SetLimit(size)
+	//if page > 0 {
+	//	findOptions.SetSkip(size * (page - 1))
+	//}
+	//
+	//collection := global.Mongo.Database("test").Collection("research_list")
+	//var err error
+	//*total, err = collection.CountDocuments(context.TODO(), bson.M{})
+	//if err != nil {
+	//	return nil, err
+	//}
+	//var cur *mongo.Cursor
+	//cur, err = collection.Find(context.TODO(), bson.M{}, findOptions)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//var results []*bson.M
+	//for cur.Next(context.TODO()) {
+	//	var elem bson.M
+	//	err = cur.Decode(&elem)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	results = append(results, &elem)
+	//}
+	//return results, nil
 }
 
-func (r ResearchListService) Retrieve(research *bson.M, id string) error {
+func (r ResearchService) Retrieve(research *bson.M, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
@@ -69,18 +73,14 @@ func (r ResearchListService) Retrieve(research *bson.M, id string) error {
 	return nil
 }
 
-func (r ResearchListService) Create(research *models.ResearchList) error {
-	collection := global.Mongo.Database("test").Collection("research_list")
-	research.CreatedAt = time.Now()
-	research.UpdatedAt = time.Now()
-	_, err := collection.InsertOne(context.TODO(), research)
-	if err != nil {
+func (r ResearchService) Create(research *models.Research) error {
+	if err := global.Mysql.Model(&models.Research{}).Create(&research).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r ResearchListService) Update(id string, data map[string]interface{}) error {
+func (r ResearchService) Update(id string, data map[string]interface{}) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
@@ -97,6 +97,28 @@ func (r ResearchListService) Update(id string, data map[string]interface{}) erro
 	return nil
 }
 
-func (r ResearchListService) Destroy(research *bson.M, id int) error {
+func (r ResearchService) Destroy(research *bson.M, id int) error {
 	panic("implement me")
+}
+
+type ResearchMgoService struct{}
+
+func NewResearchMgoService() IResearchMgoService {
+	return ResearchMgoService{}
+}
+
+type IResearchMgoService interface {
+	Create(research *models.ResearchMgo) (*mongo.InsertOneResult, error)
+}
+
+func (r ResearchMgoService) Create(research *models.ResearchMgo) (*mongo.InsertOneResult, error) {
+	collection := global.Mongo.
+		Database("test").
+		Collection("research")
+
+	one, err := collection.InsertOne(context.TODO(), research)
+	if err != nil {
+		return nil, err
+	}
+	return one, nil
 }

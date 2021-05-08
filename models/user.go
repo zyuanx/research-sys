@@ -7,5 +7,5 @@ type User struct {
 	Password  string  `gorm:"size:255;not null" json:"-"`
 	Telephone string  `gorm:"size:11;" json:"telephone"`
 	Email     string  `gorm:"size:255" json:"email"`
-	Roles     []*Role `gorm:"many2many:user_role" json:"roles"`
+	Roles     []*Role `gorm:"many2many:user_role" json:"-"`
 }

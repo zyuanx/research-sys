@@ -22,8 +22,6 @@ func MySQL() {
 		viper.GetString("mysql.parseTime"),
 		viper.GetString("mysql.loc"),
 	)
-	log.Println(dsn)
-	//dsn := "root:123456@tcp(127.0.0.1:3306)/research_sys?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(fmt.Sprintf("初始化mysql异常: %v", err))
@@ -31,7 +29,7 @@ func MySQL() {
 	global.Mysql = db
 	// 表结构
 	autoMigrate()
-	log.Println("数据库迁移完成")
+
 }
 
 func autoMigrate() {
@@ -39,8 +37,11 @@ func autoMigrate() {
 		new(models.User),
 		new(models.Role),
 		new(models.Permission),
+		new(models.Research),
+		new(models.Record),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("数据库迁移异常: %v", err))
 	}
+	log.Println("数据库迁移完成")
 }

@@ -6,11 +6,11 @@ import (
 )
 
 func Viper() {
-	viper.SetConfigName("application") // name of config file (without extension)
-	viper.SetConfigType("yaml")        // REQUIRED if the config file does not have the extension in the name
+	viper.SetConfigName("application")
+	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config/")
-	err := viper.ReadInConfig() // Find and read the config file
-	if err != nil {             // Handle errors reading the config file
+	err := viper.ReadInConfig()
+	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 }

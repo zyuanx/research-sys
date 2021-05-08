@@ -61,13 +61,11 @@ func init() {
 			if err := userServices.UserLogin(&user); err != nil {
 				return nil, err
 			}
-
-			if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password)); err != nil {
+			err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password))
+			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
-			//c.Set("user", user)
 			return user, nil
-
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
 			if _, ok := data.(models.User); ok {

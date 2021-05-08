@@ -8,8 +8,7 @@ import (
 )
 
 func Casbin() {
-	// mysql 适配器
-	adapter, err := gormadapter.NewAdapterByDB(global.Mysql)
+	adapter, err := gormadapter.NewAdapterByDB(global.Mysql) // mysql 适配器
 	if err != nil {
 		panic(fmt.Sprintf("初始化casbin异常: %v", err))
 	}
@@ -18,16 +17,8 @@ func Casbin() {
 	if err != nil {
 		panic(fmt.Sprintf("初始化casbin异常: %v", err))
 	}
-	// 日志记录
-	global.Enforcer.EnableLog(true)
-	if ok, _ := global.Enforcer.AddPolicy("admin", "/api/v1/hello", "GET"); !ok {
-		fmt.Println("Policy已经存在")
-	} else {
-		fmt.Println("增加成功")
-	}
-
-	// 加载策略规则
-	err = global.Enforcer.LoadPolicy()
+	global.Enforcer.EnableLog(true)    // 日志记录
+	err = global.Enforcer.LoadPolicy() // 加载策略规则
 	if err != nil {
 		fmt.Println("loadPolicy error")
 	}

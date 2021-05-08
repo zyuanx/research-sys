@@ -28,7 +28,7 @@ func NewPermissionController() IPermissionController {
 func (p PermissionController) List(ctx *gin.Context) {
 	pg := req.PaginationQuery{}
 	if err := ctx.ShouldBindQuery(&pg); err != nil {
-		res.Success(ctx, nil, err.Error())
+		res.Fail(ctx, nil, err.Error())
 		return
 	}
 	var permissions []models.Permission
