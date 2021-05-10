@@ -10,12 +10,12 @@ func RegisterPermissionRouter(r *gin.RouterGroup) {
 
 	controller := controllers.NewPermissionController()
 
-	role := r.Group("")
-	role.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
-	role.GET("", controller.List)
-	role.GET("/:id", controller.Retrieve)
-	role.POST("", controller.Create)
-	role.PUT("/:id", controller.Update)
-	role.DELETE("/:id", controller.Destroy)
+	group := r.Group("")
+	group.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
+	group.GET("", controller.List)
+	group.GET("/:id", controller.Retrieve)
+	group.POST("", controller.Create)
+	group.PUT("/:id", controller.Update)
+	group.DELETE("/:id", controller.Destroy)
 
 }

@@ -6,15 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterResearchRouter(r *gin.RouterGroup) {
+func RegisterRecordRouter(r *gin.RouterGroup) {
 
-	controller := controllers.NewResearchController()
+	controller := controllers.NewRecordController()
 
 	group := r.Group("")
 	group.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
 	group.GET("", controller.List)
 	group.GET("/:id", controller.Retrieve)
 	group.POST("", controller.Create)
-	group.PUT("/:id", controller.Update)
-	group.DELETE("/:id", controller.Destroy)
+	group.GET("/export", controller.DownloadExcel)
+
 }

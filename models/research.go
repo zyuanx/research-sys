@@ -8,7 +8,7 @@ type Research struct {
 	Once       int    `gorm:"default:0" json:"once"`
 	ResearchID string `gorm:"size:128;index" json:"researchID"`
 	UserID     int    `json:"-"`
-	User       User   `json:"-"`
+	User       User   `json:"user"`
 }
 
 type ResearchMgo struct {

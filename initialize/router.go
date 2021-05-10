@@ -24,6 +24,7 @@ func Routers() *gin.Engine {
 	routers.RegisterRoleRouter(apiGroup.Group("/role"))
 	routers.RegisterPermissionRouter(apiGroup.Group("/permission"))
 	routers.RegisterResearchRouter(apiGroup.Group("/research"))
+	routers.RegisterRecordRouter(apiGroup.Group("/record"))
 
 	user := r.Group("/api/v1")
 	// 使用访问控制中间件

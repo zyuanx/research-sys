@@ -12,20 +12,20 @@ func RegisterUserRouter(r *gin.RouterGroup) {
 	r.POST("/login", middlewares.JWTAuthMiddleware.LoginHandler)
 
 	//
-	auth := r.Group("")
-	auth.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
+	group := r.Group("")
+	group.Use(middlewares.JWTAuthMiddleware.MiddlewareFunc())
 	{
-		auth.POST("/logout", middlewares.JWTAuthMiddleware.LogoutHandler)
-		auth.GET("/refresh_token", middlewares.JWTAuthMiddleware.RefreshHandler)
-		auth.GET("/info", userController.GetInfo)
+		group.POST("/logout", middlewares.JWTAuthMiddleware.LogoutHandler)
+		group.GET("/refresh_token", middlewares.JWTAuthMiddleware.RefreshHandler)
+		group.GET("/info", userController.GetInfo)
 
-		auth.PUT("/reset/password/:id", userController.ResetPassword)
-		auth.PUT("/change/password", userController.ChangePassword)
+		group.PUT("/reset/password/:id", userController.ResetPassword)
+		group.PUT("/change/password", userController.ChangePassword)
 
-		auth.GET("", userController.List)
-		auth.GET("/:id", userController.Retrieve)
-		auth.POST("", userController.Create)
-		auth.PUT("/:id", userController.Update)
-		auth.DELETE("/:id", userController.Destroy)
+		group.GET("", userController.List)
+		group.GET("/:id", userController.Retrieve)
+		group.POST("", userController.Create)
+		group.PUT("/:id", userController.Update)
+		group.DELETE("/:id", userController.Destroy)
 	}
 }

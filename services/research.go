@@ -24,7 +24,9 @@ type IResearchService interface {
 }
 
 func (r ResearchService) List(page int, size int, researches *[]models.Research, total *int64) error {
-	if err := global.Mysql.Model(&models.Research{}).Count(total).
+	if err := global.Mysql.Model(&models.Research{}).
+		Count(total).
+		Preload("User").
 		Scopes(global.Paginate(page, size)).
 		Find(&researches).Error; err != nil {
 		return err
