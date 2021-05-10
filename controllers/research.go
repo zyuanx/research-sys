@@ -7,9 +7,9 @@ import (
 	"gin-research-sys/models"
 	"gin-research-sys/services"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+	"strconv"
 )
 
 type IResearchController interface {
@@ -18,10 +18,12 @@ type IResearchController interface {
 	Retrieve(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	Destroy(ctx *gin.Context)
+
+	UpdateStatus(ctx *gin.Context)
 }
 type ResearchController struct{}
 
-func NewResearchController() ResearchController {
+func NewResearchController() IResearchController {
 	return ResearchController{}
 }
 
@@ -49,13 +51,38 @@ func (r ResearchController) List(ctx *gin.Context) {
 	}, "")
 }
 func (r ResearchController) Retrieve(ctx *gin.Context) {
-	research := bson.M{}
-	id := ctx.Param("id")
-	if err := researchServices.Retrieve(&research, id); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+
+	idString := ctx.Param("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "param is error")
 		return
 	}
-	res.Success(ctx, gin.H{"research": research}, "")
+	research := models.Research{}
+	if err = researchServices.Retrieve(&research, id); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "retrieve1 fail")
+		return
+	}
+	researchMgo := models.ResearchMgo{}
+	if err = researchMgoServices.Retrieve(&researchMgo, research.ResearchID); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "retrieve2 fail")
+		return
+	}
+
+	res.Success(ctx, gin.H{"research": gin.H{
+		"id":          research.ID,
+		"title":       research.Title,
+		"desc":        research.Desc,
+		"status":      research.Status,
+		"once":        research.Once,
+		"researchID":  research.ResearchID,
+		"fieldsValue": researchMgo.FieldsValue,
+		"detail":      researchMgo.Detail,
+		"rules":       researchMgo.Rules,
+	}}, "")
 }
 
 func (r ResearchController) Create(ctx *gin.Context) {
@@ -85,7 +112,7 @@ func (r ResearchController) Create(ctx *gin.Context) {
 		UserID: int(user.ID),
 	}
 	if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
-		research.ResearchID = oid.String()
+		research.ResearchID = oid.Hex()
 	} else {
 		log.Println(ok)
 		res.Fail(ctx, gin.H{}, "create fail")
@@ -101,19 +128,72 @@ func (r ResearchController) Create(ctx *gin.Context) {
 
 func (r ResearchController) Update(ctx *gin.Context) {
 	idString := ctx.Param("id")
-	research := bson.M{}
-	if err := ctx.ShouldBindJSON(&research); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
-		return
-	}
-	if err := researchServices.Update(idString, research); err != nil {
-		res.Fail(ctx, gin.H{}, "update fail")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
 		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "param is error")
 		return
 	}
+	updateReq := req.ResearchUpdateReq{}
+	if err = ctx.ShouldBindJSON(&updateReq); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "payload is error")
+		return
+	}
+	research:= models.Research{}
+	if err = researchServices.Retrieve(&research, id); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "retrieve fail")
+		return
+	}
+	research.Title = updateReq.Title
+	research.Desc = updateReq.Desc
+	research.Once = updateReq.Once
+	research.Status = updateReq.Status
+	if err = researchServices.Update(&research); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "update fail")
+		return
+	}
+	//res.Success(ctx, gin.H{}, "update success")
+	//research := bson.M{}
+	//if err := researchServices.Update(idString, research); err != nil {
+	//	res.Fail(ctx, gin.H{}, "update fail")
+	//	log.Println(err.Error())
+	//	return
+	//}
 	res.Success(ctx, gin.H{}, "update success")
 }
 
 func (r ResearchController) Destroy(ctx *gin.Context) {
 	panic("implement me")
+}
+func (r ResearchController) UpdateStatus(ctx *gin.Context) {
+	idString := ctx.Param("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "param is error")
+		return
+	}
+	updateReq := req.ResearchUpdateReq{}
+	if err = ctx.ShouldBindJSON(&updateReq); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "payload is error")
+		return
+	}
+	research:= models.Research{}
+	if err = researchServices.Retrieve(&research, id); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "retrieve fail")
+		return
+	}
+	research.Status = updateReq.Status
+	if err = researchServices.Update(&research); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "update fail")
+		return
+	}
+	res.Success(ctx, gin.H{}, "update success")
+
 }

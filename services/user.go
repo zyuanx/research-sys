@@ -7,7 +7,6 @@ import (
 
 type IUserService interface {
 	UserLogin(user *models.User) error
-	UserPasswordReset(user *models.User) error
 
 	List(page int, size int, users *[]models.User, total *int64) error
 	Retrieve(user *models.User, id int) error
@@ -33,9 +32,6 @@ func (u UserService) UserLogin(user *models.User) error {
 	return nil
 }
 
-func (u UserService) UserPasswordReset(user *models.User) error {
-	panic("implement me")
-}
 func (u UserService) List(page int, size int, users *[]models.User, total *int64) error {
 	if err := global.Mysql.Model(&models.User{}).Count(total).
 		Scopes(global.Paginate(page, size)).

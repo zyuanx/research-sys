@@ -6,7 +6,7 @@ type Research struct {
 	Desc       string `gorm:"size:255" json:"desc"`
 	Status     int    `gorm:"default:0" json:"status"`
 	Once       int    `gorm:"default:0" json:"once"`
-	ResearchID string `gorm:"size:128;index" json:"-"`
+	ResearchID string `gorm:"size:128;index" json:"researchID"`
 	UserID     int    `json:"-"`
 	User       User   `json:"-"`
 }

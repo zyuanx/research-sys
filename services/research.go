@@ -7,7 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 type ResearchService struct{}
@@ -18,9 +17,9 @@ func NewResearchService() IResearchService {
 
 type IResearchService interface {
 	List(page int, size int, researches *[]models.Research, total *int64) error
-	Retrieve(research *bson.M, id string) error
+	Retrieve(research *models.Research, id int) error
 	Create(research *models.Research) error
-	Update(id string, data map[string]interface{}) error
+	Update(research *models.Research) error
 	Destroy(research *bson.M, id int) error
 }
 
@@ -60,14 +59,8 @@ func (r ResearchService) List(page int, size int, researches *[]models.Research,
 	//return results, nil
 }
 
-func (r ResearchService) Retrieve(research *bson.M, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	filter := bson.M{"_id": objectID}
-	collection := global.Mongo.Database("test").Collection("research_list")
-	if err = collection.FindOne(context.TODO(), filter).Decode(research); err != nil {
+func (r ResearchService) Retrieve(research *models.Research, id int) error {
+	if err := global.Mysql.Model(&models.Research{}).First(&research, id).Error; err != nil {
 		return err
 	}
 	return nil
@@ -80,21 +73,26 @@ func (r ResearchService) Create(research *models.Research) error {
 	return nil
 }
 
-func (r ResearchService) Update(id string, data map[string]interface{}) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	filter := bson.M{"_id": objectID}
-	data["updatedAt"] = time.Now()
-	update := bson.M{
-		"$set": data,
-	}
-	collection := global.Mongo.Database("test").Collection("research_list")
-	if _, err = collection.UpdateOne(context.TODO(), filter, update); err != nil {
+func (r ResearchService) Update(research *models.Research) error {
+
+	if err := global.Mysql.Save(&research).Error; err != nil {
 		return err
 	}
 	return nil
+	//objectID, err := primitive.ObjectIDFromHex(id)
+	//if err != nil {
+	//	return err
+	//}
+	//filter := bson.M{"_id": objectID}
+	//data["updatedAt"] = time.Now()
+	//update := bson.M{
+	//	"$set": data,
+	//}
+	//collection := global.Mongo.Database("test").Collection("research_list")
+	//if _, err = collection.UpdateOne(context.TODO(), filter, update); err != nil {
+	//	return err
+	//}
+	//return nil
 }
 
 func (r ResearchService) Destroy(research *bson.M, id int) error {
@@ -109,6 +107,7 @@ func NewResearchMgoService() IResearchMgoService {
 
 type IResearchMgoService interface {
 	Create(research *models.ResearchMgo) (*mongo.InsertOneResult, error)
+	Retrieve(research *models.ResearchMgo, id string) error
 }
 
 func (r ResearchMgoService) Create(research *models.ResearchMgo) (*mongo.InsertOneResult, error) {
@@ -121,4 +120,17 @@ func (r ResearchMgoService) Create(research *models.ResearchMgo) (*mongo.InsertO
 		return nil, err
 	}
 	return one, nil
+}
+
+func (r ResearchMgoService) Retrieve(research *models.ResearchMgo, id string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objectID}
+	collection := global.Mongo.Database("test").Collection("research")
+	if err = collection.FindOne(context.TODO(), filter).Decode(&research); err != nil {
+		return err
+	}
+	return nil
 }
