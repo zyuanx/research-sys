@@ -20,7 +20,7 @@ type IRecordService interface {
 	Retrieve(record *models.Record, id int) error
 	Create(record *models.Record) error
 
-	//ExportData()
+	ListID(id string, records *[]models.Record, total *int64) error
 }
 
 func (r RecordService) List(page int, size int, records *[]models.Record, total *int64) error {
@@ -43,6 +43,17 @@ func (r RecordService) Retrieve(record *models.Record, id int) error {
 
 func (r RecordService) Create(record *models.Record) error {
 	if err := global.Mysql.Model(&models.Record{}).Create(&record).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r RecordService) ListID(id string, records *[]models.Record, total *int64) error {
+	if err := global.Mysql.Model(&models.Record{}).
+		Count(total).
+		Preload("User").
+		Where("research_id = ?", id).
+		Find(&records).Error; err != nil {
 		return err
 	}
 	return nil

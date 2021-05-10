@@ -4,7 +4,7 @@ type Record struct {
 	BaseModel
 	Title      string `gorm:"size:32,not null" json:"title"`
 	ResearchID string `gorm:"size:128;index" json:"researchID"`
-	RecordID   string `gorm:"size:128,index" json:"recordID"`
+	RecordID   string `gorm:"size:128" json:"recordID"`
 	UserID     int    `json:"-"`
 	User       User   `json:"user"`
 }

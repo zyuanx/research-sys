@@ -6,11 +6,9 @@ import (
 	"gin-research-sys/middlewares"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
-	"net/http"
 	"strconv"
 )
 
@@ -18,8 +16,6 @@ type IRecordController interface {
 	List(ctx *gin.Context)
 	Create(ctx *gin.Context)
 	Retrieve(ctx *gin.Context)
-
-	DownloadExcel(ctx *gin.Context)
 }
 type RecordController struct{}
 
@@ -33,7 +29,8 @@ var recordMgoServices = services.NewRecordMgoService()
 func (r RecordController) List(ctx *gin.Context) {
 	pg := req.PaginationQuery{}
 	if err := ctx.ShouldBindQuery(&pg); err != nil {
-		res.Fail(ctx, nil, err.Error())
+		log.Println(err.Error())
+		res.Success(ctx, nil, "query error")
 		return
 	}
 
@@ -117,14 +114,4 @@ func (r RecordController) Create(ctx *gin.Context) {
 		return
 	}
 	res.Success(ctx, gin.H{}, "create success")
-}
-
-func (r RecordController) DownloadExcel(ctx *gin.Context) {
-	xlsx := excelize.NewFile()
-	if err := xlsx.SetCellValue("Sheet1", "A2", "asdas"); err != nil {
-		return
-	}
-	ctx.Header("response-type", "blob")
-	data, _ := xlsx.WriteToBuffer()
-	ctx.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", data.Bytes())
 }

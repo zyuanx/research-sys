@@ -15,6 +15,4 @@ func RegisterRecordRouter(r *gin.RouterGroup) {
 	group.GET("", controller.List)
 	group.GET("/:id", controller.Retrieve)
 	group.POST("", controller.Create)
-	group.GET("/export", controller.DownloadExcel)
-
 }
