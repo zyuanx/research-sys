@@ -99,6 +99,7 @@ func (r RecordController) Create(ctx *gin.Context) {
 	record := models.Record{
 		Title:      createReq.Title,
 		ResearchID: createReq.ResearchID,
+		IP:         ctx.ClientIP(),
 		UserID:     int(user.ID),
 	}
 	if oid, ok := result.InsertedID.(primitive.ObjectID); ok {

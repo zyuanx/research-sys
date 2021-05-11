@@ -182,15 +182,16 @@ func (r ResearchController) DownloadExcel(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, "retrieve2 fail")
 		return
 	}
-	// get research field
+	// set the excel title line
 	var fields []string
-	titleRow := make([]interface{}, len(researchMgo.Detail))
-	for i, v := range researchMgo.Detail {
-		titleRow[i] = v["label"].(string)
+	titleRow := make([]interface{}, 0)
+	titleRow = append(titleRow, "用户名", "IP地址", "填写时间")
+	for _, v := range researchMgo.Detail {
+		titleRow = append(titleRow, v["label"].(string))
 		fields = append(fields, v["fieldId"].(string))
 	}
 
-	// get record
+	// get record list
 	var records []models.Record
 	var total int64
 	if err := recordServices.ListID(idString, &records, &total); err != nil {
@@ -198,24 +199,43 @@ func (r ResearchController) DownloadExcel(ctx *gin.Context) {
 		res.Success(ctx, nil, "list error")
 		return
 	}
+
+	// 1. start generate excel
 	xlsx := excelize.NewFile()
+	// 2. new StreamWriter
 	streamWriter, err := xlsx.NewStreamWriter("Sheet1")
 	if err != nil {
 		println(err.Error())
 	}
-	if err := streamWriter.SetRow("A1", titleRow);err != nil {
-		return
-	}
-	if err := streamWriter.Flush(); err != nil {
+	if _, err = xlsx.NewStyle(`{"font":{"color":"#777777"}}`);err != nil {
 		println(err.Error())
 	}
-
-	//for colID := 0; colID < 50; colID++ {
-	//	row[colID] = rand.Intn(640000)
-	//}
-
-	if err := xlsx.SetCellValue("Sheet1", "A2", "asdas"); err != nil {
+	// 3. write title
+	if err = streamWriter.SetRow("A1", titleRow); err != nil {
 		return
+	}
+
+	// 4. write record data
+	for k, v := range records {
+		row := make([]interface{}, 0)
+		row = append(row, v.User.Username)
+		row = append(row, v.IP)
+		row = append(row, v.CreatedAt.Format("2006-01-02 15:04:05"))
+		for colID := 0; colID < len(fields); colID++ {
+			mgo := models.RecordMgo{}
+			if err = recordMgoServices.Retrieve(&mgo, v.RecordID); err != nil {
+				println(err.Error())
+			}
+			row = append(row, mgo.FieldsValue[fields[colID]])
+		}
+		cell, _ := excelize.CoordinatesToCellName(1, k+2)
+		if err = streamWriter.SetRow(cell, row); err != nil {
+			println(err.Error())
+		}
+	}
+	// 5. flush streamWriter
+	if err = streamWriter.Flush(); err != nil {
+		println(err.Error())
 	}
 	ctx.Header("response-type", "blob")
 	data, _ := xlsx.WriteToBuffer()
