@@ -28,4 +28,4 @@ __pycache__
 
 
 /config/application-pro.yml
-/logs/[a-z]+/.+log
+/logs/*/.+log
