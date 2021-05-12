@@ -58,16 +58,13 @@ func (u UserController) ResetPassword(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "param error")
 	}
 	user := models.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
-		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
-	//uprr := req.UserResetPasswordReq{}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err.Error())
@@ -147,17 +144,16 @@ func (u UserController) Retrieve(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "param error")
+		return
 	}
 	user := models.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+		res.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
 	var roles []int
-	if err := userServices.ListRole2(&user, &roles); err != nil {
-		log.Println(err.Error())
+	if err = userServices.ListRole2(&user, &roles); err != nil {
 		res.Fail(ctx, gin.H{}, "get roles error")
 	}
 

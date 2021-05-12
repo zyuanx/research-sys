@@ -57,7 +57,7 @@ func SetLogs(logLevel zapcore.Level, logFormat string) {
 	}
 
 	// 添加日志切割归档功能
-	fileName := fmt.Sprintf("%s/%04d-%02d-%02d.log", "./logs",
+	fileName := fmt.Sprintf("%s/%04d-%02d-%02d.log", "./logs/zap",
 		time.Now().Year(), time.Now().Month(), time.Now().Day())
 	hook := lumberjack.Logger{
 		Filename:   fileName,   // 日志文件路径

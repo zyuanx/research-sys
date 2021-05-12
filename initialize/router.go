@@ -4,17 +4,20 @@ import (
 	_ "gin-research-sys/docs"
 	"gin-research-sys/middlewares"
 	"gin-research-sys/routers"
+	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"go.uber.org/zap"
+	"time"
 )
 
 func Routers() *gin.Engine {
-	r := gin.Default()
-	//r := gin.New()
+	//r := gin.Default()
+	r := gin.New()
 
-	//r.Use(ginzap.Ginzap(zap.L(), time.RFC3339, true))
-	//r.Use(ginzap.RecoveryWithZap(zap.L(), true))
+	r.Use(ginzap.Ginzap(zap.L(), time.RFC3339, true))
+	r.Use(ginzap.RecoveryWithZap(zap.L(), true))
 
 	r.Use(middlewares.Cors())
 

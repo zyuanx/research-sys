@@ -16,7 +16,7 @@ import "gin-research-sys/initialize"
 // @in header
 // @name Authorization
 func main() {
-	//initialize.Zap()
+	initialize.Zap()
 	initialize.Viper()
 	initialize.MySQL()
 	initialize.MongoDB()

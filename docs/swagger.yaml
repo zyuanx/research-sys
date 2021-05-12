@@ -1,13 +1,25 @@
 definitions:
-  req.CreateRoleValidate:
+  req.RoleCreateReq:
     properties:
       desc:
         type: string
+      permissions:
+        items:
+          type: integer
+        type: array
       title:
         type: string
-    required:
-    - desc
-    - title
+    type: object
+  req.RoleUpdateReq:
+    properties:
+      desc:
+        type: string
+      permissions:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
     type: object
   res.Result:
     properties:
@@ -28,7 +40,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Research Sys API
+  title: Research sys API
   version: "1.0"
 paths:
   /api/role:
@@ -38,10 +50,10 @@ paths:
       parameters:
       - in: query
         name: page
-        type: string
+        type: integer
       - in: query
         name: size
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -51,18 +63,17 @@ paths:
             $ref: '#/definitions/res.Result'
       security:
       - ApiKeyAuth: []
-      summary: list all role
+      summary: list role
     post:
       consumes:
       - application/json
-      description: get string by ID
       parameters:
-      - description: 角色
+      - description: 角色信息
         in: body
         name: role
         required: true
         schema:
-          $ref: '#/definitions/req.CreateRoleValidate'
+          $ref: '#/definitions/req.RoleCreateReq'
       produces:
       - application/json
       responses:
@@ -72,7 +83,71 @@ paths:
             $ref: '#/definitions/res.Result'
       security:
       - ApiKeyAuth: []
-      summary: create a new role
+      summary: create role
+  /api/role/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功后返回值
+          schema:
+            $ref: '#/definitions/res.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: destroy role
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功后返回值
+          schema:
+            $ref: '#/definitions/res.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: retrieve role
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 角色信息
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/req.RoleUpdateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功后返回值
+          schema:
+            $ref: '#/definitions/res.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: update role
 securityDefinitions:
   ApiKeyAuth:
     in: header

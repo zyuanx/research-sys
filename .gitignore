@@ -26,4 +26,6 @@ __pycache__
 *.sln
 *.sw?
 
-/logs/*\.log
+
+/config/application-pro.yml
+/logs/[a-z]+/.+log

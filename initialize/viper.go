@@ -6,7 +6,7 @@ import (
 )
 
 func Viper() {
-	viper.SetConfigName("application")
+	viper.SetConfigName("application-pro")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config/")
 	err := viper.ReadInConfig()

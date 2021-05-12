@@ -1,0 +1,18 @@
+version: "3.5"
+services:
+  website:
+    build: .
+    networks:
+      research-net:
+  nginx:
+    build: ./nginx
+    ports:
+      - "8083:80"
+    networks:
+      research-net:
+    volumes:
+      - ./nginx/ssl:/usr/share/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+
+networks:
+  research-net:

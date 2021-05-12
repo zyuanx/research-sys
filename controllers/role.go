@@ -26,25 +26,23 @@ func NewRoleController() IRoleController {
 }
 
 // List
-// @Summary list all role
-// @Description
+// @Summary list role
 // @Accept application/json
 // @Produce application/json
 // @Security ApiKeyAuth
 // @Param pagination query req.PaginationQuery true "PaginationQuery"
 // @Success 200 {object} res.Result "成功后返回值"
-// @Failure 400 {object} res.Fail
 // @Router /api/role [get]
 func (r RoleController) List(ctx *gin.Context) {
 	pg := req.PaginationQuery{}
 	if err := ctx.ShouldBindQuery(&pg); err != nil {
-		res.Fail(ctx, nil, err.Error())
+		res.Fail(ctx, nil, "query is error")
 		return
 	}
 	var roles []models.Role
 	var total int64
 	if err := roleServices.List(pg.Page, pg.Size, &roles, &total); err != nil {
-		res.Success(ctx, nil, err.Error())
+		res.Fail(ctx, nil, "list role error")
 		return
 	}
 	res.Success(ctx, gin.H{
@@ -56,12 +54,11 @@ func (r RoleController) List(ctx *gin.Context) {
 }
 
 // Create
-// @Summary create a new role
-// @Description get string by ID
+// @Summary create role
 // @Accept application/json
 // @Produce application/json
 // @Security ApiKeyAuth
-// @Param role body req.CreateRoleValidate true "角色"
+// @Param role body req.RoleCreateReq true "角色信息"
 // @Success 200 {object} res.Result "成功后返回值"
 // @Router /api/role [post]
 func (r RoleController) Create(ctx *gin.Context) {
@@ -77,6 +74,14 @@ func (r RoleController) Create(ctx *gin.Context) {
 	res.Success(ctx, gin.H{"role": role}, "")
 }
 
+// Retrieve
+// @Summary retrieve role
+// @Accept application/json
+// @Produce application/json
+// @Security ApiKeyAuth
+// @Param id path int true "ID"
+// @Success 200 {object} res.Result "成功后返回值"
+// @Router /api/role/{id} [get]
 func (r RoleController) Retrieve(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
@@ -102,6 +107,15 @@ func (r RoleController) Retrieve(ctx *gin.Context) {
 	}}, "")
 }
 
+// Update
+// @Summary update role
+// @Accept application/json
+// @Produce application/json
+// @Security ApiKeyAuth
+// @Param id path int true "ID"
+// @Param role body req.RoleUpdateReq true "角色信息"
+// @Success 200 {object} res.Result "成功后返回值"
+// @Router /api/role/{id} [put]
 func (r RoleController) Update(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
@@ -136,6 +150,14 @@ func (r RoleController) Update(ctx *gin.Context) {
 	res.Success(ctx, gin.H{}, "update success")
 }
 
+// Destroy
+// @Summary destroy role
+// @Accept application/json
+// @Produce application/json
+// @Security ApiKeyAuth
+// @Param id path int true "ID"
+// @Success 200 {object} res.Result "成功后返回值"
+// @Router /api/role/{id} [delete]
 func (r RoleController) Destroy(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
