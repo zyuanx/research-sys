@@ -28,5 +28,5 @@ __pycache__
 
 
 /config/application-pro.yml
-/logs/nginx/.+log
-/logs/zap/.+log
+/logs/nginx/*.log
+/logs/zap/*.log

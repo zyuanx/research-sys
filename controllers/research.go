@@ -92,7 +92,6 @@ func (r ResearchController) Retrieve(ctx *gin.Context) {
 func (r ResearchController) Create(ctx *gin.Context) {
 	createReq := req.ResearchCreateReq{}
 	if err := ctx.ShouldBindJSON(&createReq); err != nil {
-		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "payload error")
 		return
 	}
@@ -104,7 +103,6 @@ func (r ResearchController) Create(ctx *gin.Context) {
 	}
 	result, err := researchMgoServices.Create(&researchMgo)
 	if err != nil {
-		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "create error")
 		return
 	}

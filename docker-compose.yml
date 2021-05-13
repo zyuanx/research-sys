@@ -4,6 +4,8 @@ services:
     build: .
     networks:
       research-net:
+    volumes:
+      - ./logs/zap:/code/logs/zap
   nginx:
     build: ./nginx
     ports:
@@ -11,6 +13,7 @@ services:
     networks:
       research-net:
     volumes:
+      - ./dist:/usr/share/nginx/html/dist
       - ./nginx/ssl:/usr/share/nginx/ssl
       - ./logs/nginx:/var/log/nginx
 
