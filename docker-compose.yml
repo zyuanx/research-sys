@@ -13,7 +13,6 @@ services:
     networks:
       research-net:
     volumes:
-      - ./dist:/usr/share/nginx/html/dist
       - ./nginx/ssl:/usr/share/nginx/ssl
       - ./logs/nginx:/var/log/nginx
 

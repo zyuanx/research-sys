@@ -12,7 +12,6 @@ type Research struct {
 }
 
 type ResearchMgo struct {
-	FieldsValue map[string]interface{}   `json:"fieldsValue" bson:"fieldsValue" binding:"required"`
 	Detail      []map[string]interface{} `json:"detail" bson:"detail" binding:"required"`
 	Rules       map[string]interface{}   `json:"rules" bson:"rules" binding:"required"`
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Login struct {
+type LoginReq struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
@@ -23,8 +23,8 @@ var JWTAuthMiddleware *jwt.GinJWTMiddleware
 
 func init() {
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Realm:       "test zone",
-		Key:         []byte("secret key"),
+		Realm:       "research",
+		Key:         []byte("QhYTOVSfGa0xFE4sctH6lj7UuZRiq5m2"),
 		Timeout:     time.Hour * 24,
 		MaxRefresh:  time.Hour * 24,
 		IdentityKey: identityKey,
@@ -39,7 +39,7 @@ func init() {
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
-			// 此处返回值类型interface{}与payloadFunc和authorizator的data类型必须一致,
+			// 此处返回值类型 interface{} 与 payloadFunc 和 Authenticator 的data类型必须一致,
 			// 否则会导致授权失败还不容易找到原因
 			return models.User{
 				BaseModel: models.BaseModel{
@@ -49,7 +49,7 @@ func init() {
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			login := Login{}
+			login := LoginReq{}
 			if err := c.ShouldBindJSON(&login); err != nil {
 				return nil, errors.New("payload is error")
 			}

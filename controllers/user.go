@@ -99,7 +99,6 @@ func (u UserController) ChangePassword(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
-	log.Println(passwordReq)
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordReq.Password)); err != nil {
 		res.Fail(ctx, gin.H{}, "the password is wrong")
 		return

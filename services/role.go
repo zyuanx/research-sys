@@ -12,7 +12,6 @@ type IRoleService interface {
 	Update(role *models.Role) error
 	Destroy(id int) error
 
-	ListPermission(role *models.Role, permissions *[]int) error
 	UpdatePermission(role *models.Role, ids []int) error
 }
 
@@ -58,15 +57,6 @@ func (r RoleService) Destroy(id int) error {
 	if err := global.Mysql.Delete(&models.Role{}, id).Error; err != nil {
 		return err
 	}
-	return nil
-}
-
-func (r RoleService) ListPermission(role *models.Role, permissions *[]int) error {
-	var t []int
-	for _, value := range role.Permissions {
-		t = append(t, int(value.ID))
-	}
-	*permissions = t
 	return nil
 }
 

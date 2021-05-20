@@ -55,7 +55,6 @@ func (r ResearchController) List(ctx *gin.Context) {
 }
 
 func (r ResearchController) Retrieve(ctx *gin.Context) {
-
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
@@ -83,7 +82,6 @@ func (r ResearchController) Retrieve(ctx *gin.Context) {
 		"status":      research.Status,
 		"once":        research.Once,
 		"researchID":  research.ResearchID,
-		"fieldsValue": researchMgo.FieldsValue,
 		"detail":      researchMgo.Detail,
 		"rules":       researchMgo.Rules,
 	}}, "")
@@ -97,7 +95,6 @@ func (r ResearchController) Create(ctx *gin.Context) {
 	}
 	// there needs mongo transaction
 	researchMgo := models.ResearchMgo{
-		FieldsValue: createReq.FieldsValue,
 		Detail:      createReq.Detail,
 		Rules:       createReq.Rules,
 	}

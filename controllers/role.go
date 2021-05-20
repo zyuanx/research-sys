@@ -93,12 +93,11 @@ func (r RoleController) Retrieve(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
+	// get permission id list
 	var permissions []int
-	if err := roleServices.ListPermission(&role, &permissions); err != nil {
-		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "get roles error")
+	for _, value := range role.Permissions {
+		permissions = append(permissions, int(value.ID))
 	}
-
 	res.Success(ctx, gin.H{"role": gin.H{
 		"id":          role.ID,
 		"title":       role.Title,
