@@ -6,6 +6,7 @@ import (
 	"gin-research-sys/middlewares"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -32,20 +33,19 @@ func NewUserController() IUserController {
 
 var userServices = services.NewUserService()
 
-func (u UserController) GetInfo(ctx *gin.Context) {
-	id := middlewares.JWTAuthMiddleware.IdentityHandler(ctx).(models.User).ID
+func (u UserController) GetInfo(c *gin.Context) {
+	claims := jwt.ExtractClaims(c)
+	id := int(claims["id"].(float64))
 	user := models.User{}
-	if err := userServices.Retrieve(&user, int(id)); err != nil {
-		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "get info error")
+	if err := userServices.Retrieve(&user, id); err != nil {
+		res.Fail(c, gin.H{}, "record not found")
+		return
 	}
 	var roles []string
-	if err := userServices.ListRole(&user, &roles); err != nil {
-		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "get roles error")
+	for _, value := range user.Roles {
+		roles = append(roles, value.Title)
 	}
-
-	res.Success(ctx, gin.H{"user": gin.H{
+	res.Success(c, gin.H{"user": gin.H{
 		"username":  user.Username,
 		"nickname":  user.Nickname,
 		"telephone": user.Telephone,
@@ -54,30 +54,30 @@ func (u UserController) GetInfo(ctx *gin.Context) {
 	}}, "")
 }
 
-func (u UserController) ResetPassword(ctx *gin.Context) {
-	idString := ctx.Param("id")
+func (u UserController) ResetPassword(c *gin.Context) {
+	idString := c.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		res.Fail(ctx, gin.H{}, "param error")
+		res.Fail(c, gin.H{}, "param error")
 	}
 	user := models.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
-		res.Fail(ctx, gin.H{}, "record not found")
+		res.Fail(c, gin.H{}, "record not found")
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err.Error())
-		res.Success(ctx, gin.H{}, "generate error")
+		res.Success(c, gin.H{}, "generate error")
 		return
 	}
 	user.Password = string(hashedPassword)
 	if err = userServices.Update(&user); err != nil {
 		log.Println(err.Error())
-		res.Success(ctx, gin.H{}, "update fail")
+		res.Success(c, gin.H{}, "update fail")
 		return
 	}
-	res.Success(ctx, gin.H{}, "update success")
+	res.Success(c, gin.H{}, "update success")
 }
 
 func (u UserController) ChangePassword(ctx *gin.Context) {

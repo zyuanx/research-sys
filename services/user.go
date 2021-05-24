@@ -1,12 +1,13 @@
 package services
 
 import (
+	"context"
 	"gin-research-sys/models"
 	"gin-research-sys/pkg/global"
 )
 
 type IUserService interface {
-	UserLogin(user *models.User) error
+	FindUserByUsername(user *models.User) error
 
 	List(page int, size int, users *[]models.User, total *int64) error
 	Retrieve(user *models.User, id int) error
@@ -14,7 +15,6 @@ type IUserService interface {
 	Update(user *models.User) error
 	Destroy(id int) error
 
-	ListRole(user *models.User, roles *[]string) error
 	ListRole2(user *models.User, roles *[]int) error
 	UpdateRole(user *models.User, ids []int) error
 }
@@ -24,8 +24,12 @@ func NewUserService() IUserService {
 	return UserService{}
 }
 
-func (u UserService) UserLogin(user *models.User) error {
-	result := global.Mysql.Where("username = ?", user.Username).First(&user)
+var ctx = context.Background()
+
+func (u UserService) FindUserByUsername(user *models.User) error {
+	result := global.Mysql.
+		Where("username = ?", user.Username).
+		First(&user)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -48,6 +52,37 @@ func (u UserService) Retrieve(user *models.User, id int) error {
 		return err
 	}
 	return nil
+	//val, err := global.Redis.Get(ctx, strconv.Itoa(id)).Result()
+	//if err == redis.Nil {
+	//	if err = global.Mysql.Model(&models.User{}).
+	//		Preload("Roles").
+	//		First(&user, id).Error; err != nil {
+	//		return err
+	//	}
+	//	var roles []string
+	//	for _, value := range user.Roles {
+	//		roles = append(roles, value.Title)
+	//	}
+	//	p := make(map[string]interface{}, 5)
+	//	p["username"] = user.Username
+	//	p["nickname"] = user.Nickname
+	//	p["telephone"] = user.Telephone
+	//	p["email"] = user.Email
+	//	p["roles"] = roles
+	//
+	//	marshal, err := json.Marshal(p)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	set, err := global.Redis.SetEX(ctx, strconv.Itoa(id), marshal, time.Hour).Result()
+	//	fmt.Println(set)
+	//	return err
+	//
+	//} else if err != nil {
+	//	return err
+	//} else {
+	//	return json.Unmarshal([]byte(val), user)
+	//}
 }
 
 func (u UserService) Create(user *models.User) error {
@@ -71,14 +106,6 @@ func (u UserService) Destroy(id int) error {
 	return nil
 }
 
-func (u UserService) ListRole(user *models.User, roles *[]string) error {
-	var t []string
-	for _, value := range user.Roles {
-		t = append(t, value.Title)
-	}
-	*roles = t
-	return nil
-}
 func (u UserService) ListRole2(user *models.User, roles *[]int) error {
 	var t []int
 	for _, value := range user.Roles {

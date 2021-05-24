@@ -2,7 +2,6 @@ package initialize
 
 import (
 	"fmt"
-	"gin-research-sys/models"
 	"gin-research-sys/pkg/global"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
@@ -34,11 +33,11 @@ func MySQL() {
 
 func autoMigrate() {
 	err := global.Mysql.AutoMigrate(
-		new(models.User),
-		new(models.Role),
-		new(models.Permission),
-		new(models.Research),
-		new(models.Record),
+		//new(models.User),
+		//new(models.Role),
+		//new(models.Permission),
+		//new(models.Research),
+		//new(models.Record),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("数据库迁移异常: %v", err))

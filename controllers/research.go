@@ -3,10 +3,10 @@ package controllers
 import (
 	"gin-research-sys/controllers/req"
 	"gin-research-sys/controllers/res"
-	"gin-research-sys/middlewares"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -15,11 +15,11 @@ import (
 )
 
 type IResearchController interface {
-	List(ctx *gin.Context)
-	Create(ctx *gin.Context)
-	Retrieve(ctx *gin.Context)
-	Update(ctx *gin.Context)
-	Destroy(ctx *gin.Context)
+	List(c *gin.Context)
+	Create(c *gin.Context)
+	Retrieve(c *gin.Context)
+	Update(c *gin.Context)
+	Destroy(c *gin.Context)
 
 	DownloadExcel(ctx *gin.Context)
 }
@@ -84,45 +84,48 @@ func (r ResearchController) Retrieve(ctx *gin.Context) {
 		"researchID":  research.ResearchID,
 		"detail":      researchMgo.Detail,
 		"rules":       researchMgo.Rules,
+		"fieldsValue": researchMgo.FieldsValue,
 	}}, "")
 }
 
-func (r ResearchController) Create(ctx *gin.Context) {
+func (r ResearchController) Create(c *gin.Context) {
 	createReq := req.ResearchCreateReq{}
-	if err := ctx.ShouldBindJSON(&createReq); err != nil {
-		res.Fail(ctx, gin.H{}, "payload error")
+	if err := c.ShouldBindJSON(&createReq); err != nil {
+		res.Fail(c, gin.H{}, "payload error")
 		return
 	}
 	// there needs mongo transaction
 	researchMgo := models.ResearchMgo{
 		Detail:      createReq.Detail,
 		Rules:       createReq.Rules,
+		FieldsValue: createReq.FieldsValue,
 	}
 	result, err := researchMgoServices.Create(&researchMgo)
 	if err != nil {
-		res.Fail(ctx, gin.H{}, "create error")
+		res.Fail(c, gin.H{}, "create error")
 		return
 	}
-	user := middlewares.JWTAuthMiddleware.IdentityHandler(ctx).(models.User)
+	claims := jwt.ExtractClaims(c)
+	id := int(claims["id"].(float64))
 	research := models.Research{
 		Title:  createReq.Title,
 		Desc:   createReq.Desc,
 		Once:   createReq.Once,
-		UserID: int(user.ID),
+		UserID: id,
 	}
 	if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
 		research.ResearchID = oid.Hex()
 	} else {
 		log.Println(ok)
-		res.Fail(ctx, gin.H{}, "create fail")
+		res.Fail(c, gin.H{}, "create fail")
 		return
 	}
 	if err = researchServices.Create(&research); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "create fail")
+		res.Fail(c, gin.H{}, "create fail")
 		return
 	}
-	res.Success(ctx, gin.H{}, "create success")
+	res.Success(c, gin.H{}, "create success")
 }
 
 func (r ResearchController) Update(ctx *gin.Context) {
@@ -202,7 +205,7 @@ func (r ResearchController) DownloadExcel(ctx *gin.Context) {
 	if err != nil {
 		println(err.Error())
 	}
-	if _, err = xlsx.NewStyle(`{"font":{"color":"#777777"}}`);err != nil {
+	if _, err = xlsx.NewStyle(`{"font":{"color":"#777777"}}`); err != nil {
 		println(err.Error())
 	}
 	// 3. write title

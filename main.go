@@ -20,6 +20,7 @@ func main() {
 	initialize.Viper()
 	initialize.MySQL()
 	initialize.MongoDB()
+	initialize.Redis()
 	initialize.Casbin()
 	r := initialize.Routers()
 	panic(r.Run())

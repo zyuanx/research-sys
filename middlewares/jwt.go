@@ -29,10 +29,9 @@ func init() {
 		MaxRefresh:  time.Hour * 24,
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(models.User); ok {
+			if v, ok := data.(*models.User); ok {
 				return jwt.MapClaims{
 					identityKey: v.ID,
-					"username":  v.Username,
 				}
 			}
 			return jwt.MapClaims{}
@@ -41,11 +40,10 @@ func init() {
 			claims := jwt.ExtractClaims(c)
 			// 此处返回值类型 interface{} 与 payloadFunc 和 Authenticator 的data类型必须一致,
 			// 否则会导致授权失败还不容易找到原因
-			return models.User{
+			return &models.User{
 				BaseModel: models.BaseModel{
 					ID: uint(claims[identityKey].(float64)),
 				},
-				Username: claims["username"].(string),
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -58,17 +56,17 @@ func init() {
 				Password: login.Password,
 			}
 			userServices := services.NewUserService()
-			if err := userServices.UserLogin(&user); err != nil {
+			if err := userServices.FindUserByUsername(&user); err != nil {
 				return nil, err
 			}
 			err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password))
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
-			return user, nil
+			return &user, nil
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if _, ok := data.(models.User); ok {
+			if _, ok := data.(*models.User); ok {
 				return true
 			}
 			return false
