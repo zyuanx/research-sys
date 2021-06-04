@@ -22,6 +22,8 @@ type IResearchController interface {
 	Destroy(c *gin.Context)
 
 	DownloadExcel(ctx *gin.Context)
+
+	MgoRetrieve(ctx *gin.Context)
 }
 type ResearchController struct{}
 
@@ -238,4 +240,21 @@ func (r ResearchController) DownloadExcel(ctx *gin.Context) {
 	ctx.Header("response-type", "blob")
 	data, _ := xlsx.WriteToBuffer()
 	ctx.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", data.Bytes())
+}
+
+func (r ResearchController) MgoRetrieve(ctx *gin.Context) {
+	idString := ctx.Param("id")
+
+	researchMgo := models.ResearchMgo{}
+	if err := researchMgoServices.Retrieve(&researchMgo, idString); err != nil {
+		log.Println(err.Error())
+		res.Fail(ctx, gin.H{}, "retrieve2 fail")
+		return
+	}
+
+	res.Success(ctx, gin.H{"research": gin.H{
+		"detail":      researchMgo.Detail,
+		"rules":       researchMgo.Rules,
+		"fieldsValue": researchMgo.FieldsValue,
+	}}, "")
 }

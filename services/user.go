@@ -52,37 +52,25 @@ func (u UserService) Retrieve(user *models.User, id int) error {
 		return err
 	}
 	return nil
+
 	//val, err := global.Redis.Get(ctx, strconv.Itoa(id)).Result()
-	//if err == redis.Nil {
-	//	if err = global.Mysql.Model(&models.User{}).
-	//		Preload("Roles").
-	//		First(&user, id).Error; err != nil {
-	//		return err
-	//	}
-	//	var roles []string
-	//	for _, value := range user.Roles {
-	//		roles = append(roles, value.Title)
-	//	}
-	//	p := make(map[string]interface{}, 5)
-	//	p["username"] = user.Username
-	//	p["nickname"] = user.Nickname
-	//	p["telephone"] = user.Telephone
-	//	p["email"] = user.Email
-	//	p["roles"] = roles
-	//
-	//	marshal, err := json.Marshal(p)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	set, err := global.Redis.SetEX(ctx, strconv.Itoa(id), marshal, time.Hour).Result()
-	//	fmt.Println(set)
-	//	return err
-	//
-	//} else if err != nil {
-	//	return err
-	//} else {
+	//if err != redis.Nil {
 	//	return json.Unmarshal([]byte(val), user)
 	//}
+	//if err = global.Mysql.Model(&models.User{}).
+	//	Preload("Roles").
+	//	First(&user, id).Error; err != nil {
+	//	return err
+	//}
+	//marshal, err := json.Marshal(user)
+	//if err != nil {
+	//	return err
+	//}
+	//_, err = global.Redis.SetEX(ctx, strconv.Itoa(id), marshal, time.Hour).Result()
+	//if err != nil {
+	//	return err
+	//}
+	//return nil
 }
 
 func (u UserService) Create(user *models.User) error {

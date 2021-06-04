@@ -8,10 +8,23 @@ base on Gin | GORM | gin-jwt | Casbin | mongo-driver | Swagger | Zap | Viper
 ```
 .
 ├── config
+│   ├── application-pro.yml
 │   ├── application.yml
 │   └── rbac_model.conf
 ├── controllers
+│   ├── req
+│   │   ├── permission.go
+│   │   ├── record.go
+│   │   ├── request.go
+│   │   ├── research.go
+│   │   ├── role.go
+│   │   └── user.go
+│   ├── res
+│   │   ├── response.go
+│   │   ├── role.go
+│   │   └── user.go
 │   ├── permission.go
+│   ├── record.go
 │   ├── research.go
 │   ├── role.go
 │   └── user.go
@@ -24,11 +37,16 @@ base on Gin | GORM | gin-jwt | Casbin | mongo-driver | Swagger | Zap | Viper
 │   ├── config.go
 │   ├── mongo.go
 │   ├── mysql.go
+│   ├── redis.go
 │   ├── router.go
 │   ├── viper.go
 │   └── zap.go
 ├── logs
-│   └── 2021-05-03.log
+│   ├── nginx
+│   │   ├── access.log
+│   │   └── error.log
+│   └── zap
+│       ├── 2021-05-12.log
 ├── middlewares
 │   ├── casbin.go
 │   ├── cors.go
@@ -36,40 +54,39 @@ base on Gin | GORM | gin-jwt | Casbin | mongo-driver | Swagger | Zap | Viper
 ├── models
 │   ├── base.go
 │   ├── permission.go
+│   ├── record.go
 │   ├── research.go
 │   ├── role.go
 │   └── user.go
+├── nginx
+│   ├── ssl
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── nginx_bak.conf
 ├── pkg
 │   ├── global
-│   │   ├── config.go
 │   │   ├── global.go
 │   │   └── pagination.go
-│   ├── log
-│   │   ├── constant.go
-│   │   └── log.go
-│   ├── req
-│   │   ├── request.go
-│   │   ├── role.go
-│   │   └── user.go
-│   ├── res
-│   │   ├── response.go
-│   │   ├── role.go
-│   │   └── user.go
 │   └── utils
 │       ├── json.go
 │       ├── parseValidator.go
 │       └── s.go
 ├── routers
 │   ├── permission.go
+│   ├── record.go
 │   ├── research.go
 │   ├── role.go
 │   └── user.go
 ├── services
+│   ├── casbin.go
 │   ├── permission.go
+│   ├── record.go
 │   ├── research.go
 │   ├── role.go
 │   └── user.go
+├── Dockerfile
 ├── README.md
+├── docker-compose.yml
 ├── go.mod
 ├── go.sum
 └── main.go

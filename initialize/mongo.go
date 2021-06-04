@@ -18,6 +18,7 @@ func MongoDB() {
 		viper.GetInt("mongodb.port"),
 		viper.GetString("mongodb.authSource"),
 	)
+	//fmt.Println(uri)
 	//uri := "mongodb://admin:123456@127.0.0.1:27017/?authSource=admin"
 	clientOptions := options.Client().ApplyURI(uri)
 

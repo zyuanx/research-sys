@@ -7,7 +7,6 @@ import (
 )
 
 func RegisterResearchRouter(r *gin.RouterGroup) {
-
 	controller := controllers.NewResearchController()
 
 	group := r.Group("")
@@ -18,4 +17,6 @@ func RegisterResearchRouter(r *gin.RouterGroup) {
 	group.PUT("/:id", controller.Update)
 	group.DELETE("/:id", controller.Destroy)
 	group.GET("/export/:id", controller.DownloadExcel)
+
+	group.GET("/mgo/:id", controller.MgoRetrieve)
 }

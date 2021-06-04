@@ -116,7 +116,6 @@ func (r ResearchMgoService) Create(research *models.ResearchMgo) (*mongo.InsertO
 	collection := global.Mongo.
 		Database("test").
 		Collection("research")
-
 	one, err := collection.InsertOne(context.TODO(), research)
 	if err != nil {
 		return nil, err

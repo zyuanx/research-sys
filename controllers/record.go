@@ -3,9 +3,9 @@ package controllers
 import (
 	"gin-research-sys/controllers/req"
 	"gin-research-sys/controllers/res"
-	"gin-research-sys/middlewares"
 	"gin-research-sys/models"
 	"gin-research-sys/services"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -95,7 +95,14 @@ func (r RecordController) Create(ctx *gin.Context) {
 		res.Fail(ctx, gin.H{}, "create error")
 		return
 	}
-	user := middlewares.JWTAuthMiddleware.IdentityHandler(ctx).(models.User)
+	claims := jwt.ExtractClaims(ctx)
+	id := int(claims["id"].(float64))
+	user := models.User{}
+	if err = userServices.Retrieve(&user, id); err != nil {
+		res.Fail(ctx, gin.H{}, "record not found")
+		return
+	}
+
 	record := models.Record{
 		Title:      createReq.Title,
 		ResearchID: createReq.ResearchID,
