@@ -1,6 +1,8 @@
 package main
 
-import "gin-research-sys/initialize"
+import (
+	"gin-research-sys/internal"
+)
 
 // @title Research sys API
 // @version 1.0
@@ -16,12 +18,6 @@ import "gin-research-sys/initialize"
 // @in header
 // @name Authorization
 func main() {
-	initialize.Zap()
-	initialize.Viper()
-	initialize.MySQL()
-	initialize.MongoDB()
-	initialize.Redis()
-	initialize.Casbin()
-	r := initialize.Routers()
+	r := internal.App()
 	panic(r.Run())
 }
