@@ -28,11 +28,10 @@ func NewUserService() IUserService {
 var ctx = context.Background()
 
 func (u UserService) FindUserByUsername(user *model.User) error {
-	result := conf.Mysql.
+	if err := conf.Mysql.
 		Where("username = ?", user.Username).
-		First(&user)
-	if result.Error != nil {
-		return result.Error
+		First(&user).Error; err != nil {
+		return err
 	}
 	return nil
 }

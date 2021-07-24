@@ -3,7 +3,7 @@ package controller
 import (
 	"gin-research-sys/internal/controller/req"
 	"gin-research-sys/internal/controller/res"
-	middlewares2 "gin-research-sys/internal/middleware"
+	"gin-research-sys/internal/middleware"
 	"gin-research-sys/internal/model"
 	"gin-research-sys/internal/service"
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -81,7 +81,6 @@ func (u UserController) ResetPassword(c *gin.Context) {
 }
 
 func (u UserController) ChangePassword(ctx *gin.Context) {
-
 	passwordReq := req.UserChangePasswordReq{}
 	if err := ctx.ShouldBindJSON(&passwordReq); err != nil {
 		log.Println(err.Error())
@@ -93,7 +92,7 @@ func (u UserController) ChangePassword(ctx *gin.Context) {
 		return
 	}
 	user := model.User{}
-	ins := middlewares2.JWTAuthMiddleware.IdentityHandler(ctx).(model.User)
+	ins := middleware.JWTAuthMiddleware.IdentityHandler(ctx).(model.User)
 	if err := userServices.Retrieve(&user, int(ins.ID)); err != nil {
 		log.Println(err.Error())
 		res.Fail(ctx, gin.H{}, "record not found")

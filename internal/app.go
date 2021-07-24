@@ -10,7 +10,8 @@ func App() *gin.Engine {
 	initialize.Viper()
 	initialize.MySQL()
 	initialize.MongoDB()
-	initialize.Redis()
+	initialize.CreateAdmin()
+	//initialize.Redis()
 	initialize.Casbin()
 	return initialize.Router()
 }
