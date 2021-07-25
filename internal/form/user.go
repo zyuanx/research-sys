@@ -1,4 +1,4 @@
-package req
+package form
 
 import (
 	"github.com/go-playground/validator/v10"
@@ -8,15 +8,15 @@ type LoginValidator struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
-type UserResetPasswordReq struct {
+type UserResetPasswordForm struct {
 	Password string `json:"password" binding:"required"`
 }
-type UserChangePasswordReq struct {
+type UserChangePasswordForm struct {
 	Password string `json:"password" binding:"required"`
 	Password1 string `json:"password1" binding:"required"`
 	Password2 string `json:"password2" binding:"required"`
 }
-type UserCreateReq struct {
+type UserCreateForm struct {
 	Username  string `json:"username" binding:"required"`
 	Password1 string `json:"password1" binding:"required"`
 	Password2 string `json:"password2" binding:"required"`
@@ -26,7 +26,7 @@ type UserCreateReq struct {
 	Roles     []int  `json:"roles"`
 }
 
-type UserUpdateReq struct {
+type UserUpdateForm struct {
 	Nickname  string `json:"nickname"`
 	Telephone string `json:"telephone"`
 	Email     string `json:"email"`

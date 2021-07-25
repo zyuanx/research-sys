@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"gin-research-sys/internal/controller/req"
-	"gin-research-sys/internal/controller/res"
+	"gin-research-sys/internal/form"
 	"gin-research-sys/internal/middleware"
 	"gin-research-sys/internal/model"
 	"gin-research-sys/internal/service"
+	"gin-research-sys/internal/util"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -38,14 +38,14 @@ func (u UserController) GetInfo(c *gin.Context) {
 	id := int(claims["id"].(float64))
 	user := model.User{}
 	if err := userServices.Retrieve(&user, id); err != nil {
-		res.Fail(c, gin.H{}, "record not found")
+		util.Fail(c, gin.H{}, "record not found")
 		return
 	}
 	var roles []string
 	for _, value := range user.Roles {
 		roles = append(roles, value.Title)
 	}
-	res.Success(c, gin.H{"user": gin.H{
+	util.Success(c, gin.H{"user": gin.H{
 		"username":  user.Username,
 		"nickname":  user.Nickname,
 		"telephone": user.Telephone,
@@ -58,83 +58,83 @@ func (u UserController) ResetPassword(c *gin.Context) {
 	idString := c.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		res.Fail(c, gin.H{}, "param error")
+		util.Fail(c, gin.H{}, "param error")
 	}
 	user := model.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
-		res.Fail(c, gin.H{}, "record not found")
+		util.Fail(c, gin.H{}, "record not found")
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err.Error())
-		res.Success(c, gin.H{}, "generate error")
+		util.Fail(c, gin.H{}, "generate error")
 		return
 	}
 	user.Password = string(hashedPassword)
 	if err = userServices.Update(&user); err != nil {
 		log.Println(err.Error())
-		res.Success(c, gin.H{}, "update fail")
+		util.Fail(c, gin.H{}, "update fail")
 		return
 	}
-	res.Success(c, gin.H{}, "update success")
+	util.Success(c, gin.H{}, "update success")
 }
 
 func (u UserController) ChangePassword(ctx *gin.Context) {
-	passwordReq := req.UserChangePasswordReq{}
-	if err := ctx.ShouldBindJSON(&passwordReq); err != nil {
+	passwordForm := form.UserChangePasswordForm{}
+	if err := ctx.ShouldBindJSON(&passwordForm); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "payload is error")
+		util.Fail(ctx, gin.H{}, "payload is error")
 		return
 	}
-	if passwordReq.Password1 != passwordReq.Password2 {
-		res.Fail(ctx, gin.H{}, "the two passwords don't match")
+	if passwordForm.Password1 != passwordForm.Password2 {
+		util.Fail(ctx, gin.H{}, "the two passwords don't match")
 		return
 	}
 	user := model.User{}
 	ins := middleware.JWTAuthMiddleware.IdentityHandler(ctx).(model.User)
 	if err := userServices.Retrieve(&user, int(ins.ID)); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "record not found")
+		util.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordReq.Password)); err != nil {
-		res.Fail(ctx, gin.H{}, "the password is wrong")
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordForm.Password)); err != nil {
+		util.Fail(ctx, gin.H{}, "the password is wrong")
 		return
 	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordReq.Password1), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordForm.Password1), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err.Error())
-		res.Success(ctx, gin.H{}, "generate error")
+		util.Fail(ctx, gin.H{}, "generate error")
 		return
 	}
 	user.Password = string(hashedPassword)
 	if err := userServices.Update(&user); err != nil {
 		log.Println(err.Error())
-		res.Success(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "update fail")
 		return
 	}
-	res.Success(ctx, gin.H{}, "update success")
+	util.Success(ctx, gin.H{}, "update success")
 
 }
 
 func (u UserController) List(ctx *gin.Context) {
-	pg := req.PaginationQuery{}
-	if err := ctx.ShouldBindQuery(&pg); err != nil {
-		res.Fail(ctx, nil, err.Error())
+	pagination := form.Pagination{}
+	if err := ctx.ShouldBindQuery(&pagination); err != nil {
+		util.Fail(ctx, nil, err.Error())
 		return
 	}
 	var users []model.User
 	var total int64
-	if err := userServices.List(pg.Page, pg.Size, &users, &total); err != nil {
-		res.Success(ctx, nil, err.Error())
+	if err := userServices.List(pagination.Page, pagination.Size, &users, &total); err != nil {
+		util.Success(ctx, nil, err.Error())
 		return
 	}
-	res.Success(ctx, gin.H{
-		"page":    pg.Page,
-		"size":    pg.Size,
-		"results": users,
-		"total":   total,
+	util.Success(ctx, gin.H{
+		"page":     pagination.Page,
+		"size":     pagination.Size,
+		"utilults": users,
+		"total":    total,
 	}, "")
 }
 
@@ -142,20 +142,20 @@ func (u UserController) Retrieve(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		res.Fail(ctx, gin.H{}, "param error")
+		util.Fail(ctx, gin.H{}, "param error")
 		return
 	}
 	user := model.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
-		res.Fail(ctx, gin.H{}, "record not found")
+		util.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
 	var roles []int
 	if err = userServices.ListRole2(&user, &roles); err != nil {
-		res.Fail(ctx, gin.H{}, "get roles error")
+		util.Fail(ctx, gin.H{}, "get roles error")
 	}
 
-	res.Success(ctx, gin.H{"user": gin.H{
+	util.Success(ctx, gin.H{"user": gin.H{
 		"id":        user.ID,
 		"username":  user.Username,
 		"nickname":  user.Nickname,
@@ -166,35 +166,35 @@ func (u UserController) Retrieve(ctx *gin.Context) {
 }
 
 func (u UserController) Create(ctx *gin.Context) {
-	ucq := req.UserCreateReq{}
+	createForm := form.UserCreateForm{}
 
-	if err := ctx.ShouldBindJSON(&ucq); err != nil {
+	if err := ctx.ShouldBindJSON(&createForm); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "payload is error")
+		util.Fail(ctx, gin.H{}, "payload is error")
 		return
 	}
-	if ucq.Password1 != ucq.Password2 {
-		res.Fail(ctx, gin.H{}, "the two passwords don't match")
+	if createForm.Password1 != createForm.Password2 {
+		util.Fail(ctx, gin.H{}, "the two passwords don't match")
 		return
 	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(ucq.Password1), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(createForm.Password1), bcrypt.DefaultCost)
 	if err != nil {
-		res.Fail(ctx, gin.H{}, err.Error())
+		util.Fail(ctx, gin.H{}, err.Error())
 		return
 	}
 	user := model.User{
-		Username:  ucq.Username,
-		Nickname:  ucq.Nickname,
+		Username:  createForm.Username,
+		Nickname:  createForm.Nickname,
 		Password:  string(hashedPassword),
-		Telephone: ucq.Telephone,
-		Email:     ucq.Email,
+		Telephone: createForm.Telephone,
+		Email:     createForm.Email,
 	}
 	if err = userServices.Create(&user); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "create fail")
+		util.Fail(ctx, gin.H{}, "create fail")
 		return
 	}
-	res.Success(ctx, gin.H{}, "create success")
+	util.Success(ctx, gin.H{}, "create success")
 }
 
 func (u UserController) Update(ctx *gin.Context) {
@@ -202,35 +202,35 @@ func (u UserController) Update(ctx *gin.Context) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "param error")
+		util.Fail(ctx, gin.H{}, "param error")
 		return
 	}
-	updateReq := req.UserUpdateReq{}
-	if err = ctx.ShouldBindJSON(&updateReq); err != nil {
+	updateForm := form.UserUpdateForm{}
+	if err = ctx.ShouldBindJSON(&updateForm); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "payload error")
+		util.Fail(ctx, gin.H{}, "payload error")
 		return
 	}
 	user := model.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "record not found")
+		util.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
-	user.Nickname = updateReq.Nickname
-	user.Telephone = updateReq.Telephone
-	user.Email = updateReq.Email
+	user.Nickname = updateForm.Nickname
+	user.Telephone = updateForm.Telephone
+	user.Email = updateForm.Email
 	if err = userServices.Update(&user); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "update fail")
 		return
 	}
-	if err = userServices.UpdateRole(&user, updateReq.Roles); err != nil {
+	if err = userServices.UpdateRole(&user, updateForm.Roles); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "update fail")
 		return
 	}
-	res.Success(ctx, gin.H{}, "update success")
+	util.Success(ctx, gin.H{}, "update success")
 }
 
 func (u UserController) Destroy(ctx *gin.Context) {
@@ -238,13 +238,13 @@ func (u UserController) Destroy(ctx *gin.Context) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "param error")
+		util.Fail(ctx, gin.H{}, "param error")
 		return
 	}
 	if err = userServices.Destroy(id); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "delete fail")
+		util.Fail(ctx, gin.H{}, "delete fail")
 		return
 	}
-	res.Success(ctx, gin.H{}, "delete success")
+	util.Success(ctx, gin.H{}, "delete success")
 }

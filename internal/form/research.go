@@ -1,6 +1,6 @@
-package req
+package form
 
-type ResearchCreateReq struct {
+type ResearchCreateForm struct {
 	Title       string                   `json:"title" binding:"required"`
 	Desc        string                   `json:"desc" binding:"required"`
 	Once        int                      `json:"once"`
@@ -9,7 +9,7 @@ type ResearchCreateReq struct {
 	Rules       map[string]interface{}   `json:"rules" binding:"required"`
 }
 
-type ResearchUpdateReq struct {
+type ResearchUpdateForm struct {
 	Title  string `json:"title" binding:"required"`
 	Desc   string `json:"desc" binding:"required"`
 	Once   int    `json:"once"`

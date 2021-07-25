@@ -1,12 +1,12 @@
-package req
+package form
 
-type RoleCreateReq struct {
+type RoleCreateForm struct {
 	Title       string `json:"title"`
 	Desc        string `json:"desc"`
 	Permissions []int  `json:"permissions"`
 }
 
-type RoleUpdateReq struct {
+type RoleUpdateForm struct {
 	Title       string `json:"title"`
 	Desc        string `json:"desc"`
 	Permissions []int  `json:"permissions"`

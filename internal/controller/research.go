@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"gin-research-sys/internal/controller/req"
-	"gin-research-sys/internal/controller/res"
+	"gin-research-sys/internal/form"
 	"gin-research-sys/internal/model"
 	"gin-research-sys/internal/service"
+	"gin-research-sys/internal/util"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
@@ -35,22 +35,22 @@ var researchServices = service.NewResearchService()
 var researchMgoServices = service.NewResearchMgoService()
 
 func (r ResearchController) List(ctx *gin.Context) {
-	pg := req.PaginationQuery{}
-	if err := ctx.ShouldBindQuery(&pg); err != nil {
+	pagination := form.Pagination{}
+	if err := ctx.ShouldBindQuery(&pagination); err != nil {
 		log.Println(err.Error())
-		res.Success(ctx, nil, "query error")
+		util.Success(ctx, nil, "query error")
 		return
 	}
 
 	var researches []model.Research
 	var total int64
-	if err := researchServices.List(pg.Page, pg.Size, &researches, &total); err != nil {
+	if err := researchServices.List(pagination.Page, pagination.Size, &researches, &total); err != nil {
 		log.Println(err.Error())
-		res.Success(ctx, nil, "list error")
+		util.Success(ctx, nil, "list error")
 	}
-	res.Success(ctx, gin.H{
-		"page":    pg.Page,
-		"size":    pg.Size,
+	util.Success(ctx, gin.H{
+		"page":    pagination.Page,
+		"size":    pagination.Size,
 		"results": researches,
 		"total":   total,
 	}, "")
@@ -61,23 +61,23 @@ func (r ResearchController) Retrieve(ctx *gin.Context) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "param is error")
+		util.Fail(ctx, gin.H{}, "param is error")
 		return
 	}
 	research := model.Research{}
 	if err = researchServices.Retrieve(&research, id); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "retrieve1 fail")
+		util.Fail(ctx, gin.H{}, "retrieve1 fail")
 		return
 	}
 	researchMgo := model.ResearchMgo{}
 	if err = researchMgoServices.Retrieve(&researchMgo, research.ResearchID); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "retrieve2 fail")
+		util.Fail(ctx, gin.H{}, "retrieve2 fail")
 		return
 	}
 
-	res.Success(ctx, gin.H{"research": gin.H{
+	util.Success(ctx, gin.H{"research": gin.H{
 		"id":          research.ID,
 		"title":       research.Title,
 		"desc":        research.Desc,
@@ -91,43 +91,43 @@ func (r ResearchController) Retrieve(ctx *gin.Context) {
 }
 
 func (r ResearchController) Create(c *gin.Context) {
-	createReq := req.ResearchCreateReq{}
-	if err := c.ShouldBindJSON(&createReq); err != nil {
-		res.Fail(c, gin.H{}, "payload error")
+	createForm := form.ResearchCreateForm{}
+	if err := c.ShouldBindJSON(&createForm); err != nil {
+		util.Fail(c, gin.H{}, "payload error")
 		return
 	}
 	// there needs mongo transaction
 	researchMgo := model.ResearchMgo{
-		Detail:      createReq.Detail,
-		Rules:       createReq.Rules,
-		FieldsValue: createReq.FieldsValue,
+		Detail:      createForm.Detail,
+		Rules:       createForm.Rules,
+		FieldsValue: createForm.FieldsValue,
 	}
 	result, err := researchMgoServices.Create(&researchMgo)
 	if err != nil {
-		res.Fail(c, gin.H{}, "create error")
+		util.Fail(c, gin.H{}, "create error")
 		return
 	}
 	claims := jwt.ExtractClaims(c)
 	id := int(claims["id"].(float64))
 	research := model.Research{
-		Title:  createReq.Title,
-		Desc:   createReq.Desc,
-		Once:   createReq.Once,
+		Title:  createForm.Title,
+		Desc:   createForm.Desc,
+		Once:   createForm.Once,
 		UserID: id,
 	}
 	if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
 		research.ResearchID = oid.Hex()
 	} else {
 		log.Println(ok)
-		res.Fail(c, gin.H{}, "create fail")
+		util.Fail(c, gin.H{}, "create fail")
 		return
 	}
 	if err = researchServices.Create(&research); err != nil {
 		log.Println(err.Error())
-		res.Fail(c, gin.H{}, "create fail")
+		util.Fail(c, gin.H{}, "create fail")
 		return
 	}
-	res.Success(c, gin.H{}, "create success")
+	util.Success(c, gin.H{}, "create success")
 }
 
 func (r ResearchController) Update(ctx *gin.Context) {
@@ -135,28 +135,28 @@ func (r ResearchController) Update(ctx *gin.Context) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "param is error")
+		util.Fail(ctx, gin.H{}, "param is error")
 		return
 	}
-	updateReq := req.ResearchUpdateReq{}
-	if err = ctx.ShouldBindJSON(&updateReq); err != nil {
+	updateForm := form.ResearchUpdateForm{}
+	if err = ctx.ShouldBindJSON(&updateForm); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "payload is error")
+		util.Fail(ctx, gin.H{}, "payload is error")
 		return
 	}
 	research := model.Research{}
 	if err = researchServices.Retrieve(&research, id); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "retrieve fail")
+		util.Fail(ctx, gin.H{}, "retrieve fail")
 		return
 	}
-	research.Title = updateReq.Title
-	research.Desc = updateReq.Desc
-	research.Once = updateReq.Once
-	research.Status = updateReq.Status
+	research.Title = updateForm.Title
+	research.Desc = updateForm.Desc
+	research.Once = updateForm.Once
+	research.Status = updateForm.Status
 	if err = researchServices.Update(&research); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "update fail")
 		return
 	}
 	//res.Success(ctx, gin.H{}, "update success")
@@ -166,7 +166,7 @@ func (r ResearchController) Update(ctx *gin.Context) {
 	//	log.Println(err.Error())
 	//	return
 	//}
-	res.Success(ctx, gin.H{}, "update success")
+	util.Success(ctx, gin.H{}, "update success")
 }
 
 func (r ResearchController) Destroy(ctx *gin.Context) {
@@ -179,7 +179,7 @@ func (r ResearchController) DownloadExcel(ctx *gin.Context) {
 	researchMgo := model.ResearchMgo{}
 	if err := researchMgoServices.Retrieve(&researchMgo, idString); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "retrieve2 fail")
+		util.Fail(ctx, gin.H{}, "retrieve2 fail")
 		return
 	}
 	// set the excel title line
@@ -196,7 +196,7 @@ func (r ResearchController) DownloadExcel(ctx *gin.Context) {
 	var total int64
 	if err := recordServices.ListID(idString, &records, &total); err != nil {
 		log.Println(err.Error())
-		res.Success(ctx, nil, "list error")
+		util.Success(ctx, nil, "list error")
 		return
 	}
 
@@ -248,11 +248,11 @@ func (r ResearchController) MgoRetrieve(ctx *gin.Context) {
 	researchMgo := model.ResearchMgo{}
 	if err := researchMgoServices.Retrieve(&researchMgo, idString); err != nil {
 		log.Println(err.Error())
-		res.Fail(ctx, gin.H{}, "retrieve2 fail")
+		util.Fail(ctx, gin.H{}, "retrieve2 fail")
 		return
 	}
 
-	res.Success(ctx, gin.H{"research": gin.H{
+	util.Success(ctx, gin.H{"research": gin.H{
 		"detail":      researchMgo.Detail,
 		"rules":       researchMgo.Rules,
 		"fieldsValue": researchMgo.FieldsValue,
