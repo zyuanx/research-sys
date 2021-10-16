@@ -11,7 +11,6 @@ func RegisterUserRouter(r *gin.RouterGroup) {
 	userController := controller.NewUserController()
 	r.POST("/login", middleware.JWTAuthMiddleware.LoginHandler)
 
-	//
 	group := r.Group("")
 	group.Use(middleware.JWTAuthMiddleware.MiddlewareFunc())
 	{

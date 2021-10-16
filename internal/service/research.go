@@ -17,15 +17,16 @@ func NewResearchService() IResearchService {
 }
 
 type IResearchService interface {
-	List(page int, size int, researches *[]model.Research, total *int64) error
+	List(page int, size int, researches *[]model.Research, total *int64, query map[string]interface{}) error
 	Retrieve(research *model.Research, id int) error
 	Create(research *model.Research) error
 	Update(research *model.Research) error
 	Destroy(research *bson.M, id int) error
 }
 
-func (r ResearchService) List(page int, size int, researches *[]model.Research, total *int64) error {
+func (r ResearchService) List(page int, size int, researches *[]model.Research, total *int64, query map[string]interface{}) error {
 	if err := conf.Mysql.Model(&model.Research{}).
+		Where(query).
 		Count(total).
 		Preload("User").
 		Scopes(util.Paginate(page, size)).
@@ -33,33 +34,6 @@ func (r ResearchService) List(page int, size int, researches *[]model.Research, 
 		return err
 	}
 	return nil
-	//findOptions := options.Find()
-	//findOptions.SetLimit(size)
-	//if page > 0 {
-	//	findOptions.SetSkip(size * (page - 1))
-	//}
-	//
-	//collection := conf.Mongo.Database("test").Collection("research_list")
-	//var err error
-	//*total, err = collection.CountDocuments(context.TODO(), bson.M{})
-	//if err != nil {
-	//	return nil, err
-	//}
-	//var cur *mongo.Cursor
-	//cur, err = collection.Find(context.TODO(), bson.M{}, findOptions)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//var results []*bson.M
-	//for cur.Next(context.TODO()) {
-	//	var elem bson.M
-	//	err = cur.Decode(&elem)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	results = append(results, &elem)
-	//}
-	//return results, nil
 }
 
 func (r ResearchService) Retrieve(research *model.Research, id int) error {

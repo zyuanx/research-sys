@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"gin-research-sys/internal/conf"
 	"gin-research-sys/internal/model"
 	"gin-research-sys/internal/util"
@@ -24,8 +23,6 @@ type UserService struct{}
 func NewUserService() IUserService {
 	return UserService{}
 }
-
-var ctx = context.Background()
 
 func (u UserService) FindUserByUsername(user *model.User) error {
 	if err := conf.Mysql.
@@ -52,25 +49,6 @@ func (u UserService) Retrieve(user *model.User, id int) error {
 		return err
 	}
 	return nil
-
-	//val, err := conf.Redis.Get(ctx, strconv.Itoa(id)).Result()
-	//if err != redis.Nil {
-	//	return json.Unmarshal([]byte(val), user)
-	//}
-	//if err = conf.Mysql.Model(&model.User{}).
-	//	Preload("Roles").
-	//	First(&user, id).Error; err != nil {
-	//	return err
-	//}
-	//marshal, err := json.Marshal(user)
-	//if err != nil {
-	//	return err
-	//}
-	//_, err = conf.Redis.SetEX(ctx, strconv.Itoa(id), marshal, time.Hour).Result()
-	//if err != nil {
-	//	return err
-	//}
-	//return nil
 }
 
 func (u UserService) Create(user *model.User) error {

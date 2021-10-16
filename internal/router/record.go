@@ -15,4 +15,5 @@ func RegisterRecordRouter(r *gin.RouterGroup) {
 	group.GET("", recordController.List)
 	group.GET("/:id", recordController.Retrieve)
 	group.POST("", recordController.Create)
+	group.GET("/filled/:id", recordController.Filled)
 }

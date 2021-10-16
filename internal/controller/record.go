@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"gin-research-sys/internal/form"
 	"gin-research-sys/internal/model"
 	"gin-research-sys/internal/service"
@@ -8,13 +9,16 @@ import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"gorm.io/gorm"
 	"log"
 	"strconv"
 )
+
 type IRecordController interface {
 	List(ctx *gin.Context)
 	Create(ctx *gin.Context)
 	Retrieve(ctx *gin.Context)
+	Filled(ctx *gin.Context)
 }
 type RecordController struct{}
 
@@ -35,7 +39,16 @@ func (r RecordController) List(ctx *gin.Context) {
 
 	var records []model.Record
 	var total int64
-	if err := recordServices.List(pagination.Page, pagination.Size, &records, &total); err != nil {
+
+	// not admin, retrieve created by yourself
+	query := make(map[string]interface{})
+	claims := jwt.ExtractClaims(ctx)
+	id := int(claims["id"].(float64))
+	username := claims["username"].(string)
+	if username != "admin" {
+		query["publisher"] = id
+	}
+	if err := recordServices.List(pagination.Page, pagination.Size, &records, &total, query); err != nil {
 		util.Success(ctx, nil, err.Error())
 		return
 	}
@@ -48,7 +61,6 @@ func (r RecordController) List(ctx *gin.Context) {
 }
 
 func (r RecordController) Retrieve(ctx *gin.Context) {
-
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
@@ -59,13 +71,13 @@ func (r RecordController) Retrieve(ctx *gin.Context) {
 	record := model.Record{}
 	if err = recordServices.Retrieve(&record, id); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "retrieve1 fail")
+		util.Fail(ctx, gin.H{}, "retrieve fail")
 		return
 	}
 	recordMgo := model.RecordMgo{}
 	if err = recordMgoServices.Retrieve(&recordMgo, record.RecordID); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "retrieve2 fail")
+		util.Fail(ctx, gin.H{}, "retrieve fail")
 		return
 	}
 
@@ -121,4 +133,23 @@ func (r RecordController) Create(ctx *gin.Context) {
 		return
 	}
 	util.Success(ctx, gin.H{}, "create success")
+}
+
+func (r RecordController) Filled(ctx *gin.Context) {
+	researchId := ctx.Param("id")
+
+	claims := jwt.ExtractClaims(ctx)
+	id := int(claims["id"].(float64))
+
+	record := model.Record{}
+	if err := recordServices.FindByResearchID(&record, researchId, id); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			util.Success(ctx, gin.H{}, "")
+			return
+		}
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "retrieve fail")
+		return
+	}
+	util.Fail(ctx, gin.H{}, "already filled in")
 }

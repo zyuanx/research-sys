@@ -17,15 +17,17 @@ func NewRecordService() IRecordService {
 }
 
 type IRecordService interface {
-	List(page int, size int, records *[]model.Record, total *int64) error
+	List(page int, size int, records *[]model.Record, total *int64, query map[string]interface{}) error
 	Retrieve(record *model.Record, id int) error
 	Create(record *model.Record) error
 
+	FindByResearchID(records *model.Record, researchId string, id int) error
 	ListID(id string, records *[]model.Record, total *int64) error
 }
 
-func (r RecordService) List(page int, size int, records *[]model.Record, total *int64) error {
+func (r RecordService) List(page int, size int, records *[]model.Record, total *int64, query map[string]interface{}) error {
 	if err := conf.Mysql.Model(&model.Record{}).
+		Where(query).
 		Count(total).
 		Preload("User").
 		Scopes(util.Paginate(page, size)).
@@ -49,6 +51,15 @@ func (r RecordService) Create(record *model.Record) error {
 	return nil
 }
 
+func (r RecordService) FindByResearchID(records *model.Record, researchId string, id int) error {
+	if err := conf.Mysql.Model(&model.Record{}).
+		Where("research_id = ?", researchId).
+		Where("user_id = ?", id).
+		First(&records).Error; err != nil {
+		return err
+	}
+	return nil
+}
 func (r RecordService) ListID(id string, records *[]model.Record, total *int64) error {
 	if err := conf.Mysql.Model(&model.Record{}).
 		Count(total).

@@ -31,6 +31,7 @@ func init() {
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*model.User); ok {
 				return jwt.MapClaims{
+					"username":  v.Username,
 					identityKey: v.ID,
 				}
 			}
@@ -39,8 +40,9 @@ func init() {
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
 			// 此处返回值类型 interface{} 与 payloadFunc 和 Authenticator 的data类型必须一致,
-			// 否则会导致授权失败还不容易找到原因
+			// 否则会导致授权失败
 			return &model.User{
+				Username: claims["username"].(string),
 				BaseModel: model.BaseModel{
 					ID: uint(claims[identityKey].(float64)),
 				},

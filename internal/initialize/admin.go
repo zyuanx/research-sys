@@ -22,7 +22,11 @@ func CreateAdmin() {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 	user.Password = string(hashedPassword)
 	user.Roles = []*model.Role{
-		&model.Role{
+		{
+			Title: "common",
+			Desc:  "common",
+		},
+		{
 			Title: "admin",
 			Desc:  "superuser",
 		},

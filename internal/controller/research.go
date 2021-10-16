@@ -21,6 +21,8 @@ type IResearchController interface {
 	Update(c *gin.Context)
 	Destroy(c *gin.Context)
 
+	Square(c *gin.Context)
+
 	DownloadExcel(ctx *gin.Context)
 
 	MgoRetrieve(ctx *gin.Context)
@@ -44,7 +46,16 @@ func (r ResearchController) List(ctx *gin.Context) {
 
 	var researches []model.Research
 	var total int64
-	if err := researchServices.List(pagination.Page, pagination.Size, &researches, &total); err != nil {
+
+	// not admin, retrieve created by yourself
+	query := make(map[string]interface{})
+	claims := jwt.ExtractClaims(ctx)
+	id := int(claims["id"].(float64))
+	username := claims["username"].(string)
+	if username != "admin" {
+		query["user_id"] = id
+	}
+	if err := researchServices.List(pagination.Page, pagination.Size, &researches, &total, query); err != nil {
 		log.Println(err.Error())
 		util.Success(ctx, nil, "list error")
 	}
@@ -87,13 +98,14 @@ func (r ResearchController) Retrieve(ctx *gin.Context) {
 		"detail":      researchMgo.Detail,
 		"rules":       researchMgo.Rules,
 		"fieldsValue": researchMgo.FieldsValue,
+		"creator":     research.UserID,
 	}}, "")
 }
 
-func (r ResearchController) Create(c *gin.Context) {
+func (r ResearchController) Create(ctx *gin.Context) {
 	createForm := form.ResearchCreateForm{}
-	if err := c.ShouldBindJSON(&createForm); err != nil {
-		util.Fail(c, gin.H{}, "payload error")
+	if err := ctx.ShouldBindJSON(&createForm); err != nil {
+		util.Fail(ctx, gin.H{}, "payload error")
 		return
 	}
 	// there needs mongo transaction
@@ -104,10 +116,10 @@ func (r ResearchController) Create(c *gin.Context) {
 	}
 	result, err := researchMgoServices.Create(&researchMgo)
 	if err != nil {
-		util.Fail(c, gin.H{}, "create error")
+		util.Fail(ctx, gin.H{}, "create error")
 		return
 	}
-	claims := jwt.ExtractClaims(c)
+	claims := jwt.ExtractClaims(ctx)
 	id := int(claims["id"].(float64))
 	research := model.Research{
 		Title:  createForm.Title,
@@ -119,15 +131,15 @@ func (r ResearchController) Create(c *gin.Context) {
 		research.ResearchID = oid.Hex()
 	} else {
 		log.Println(ok)
-		util.Fail(c, gin.H{}, "create fail")
+		util.Fail(ctx, gin.H{}, "create fail")
 		return
 	}
 	if err = researchServices.Create(&research); err != nil {
 		log.Println(err.Error())
-		util.Fail(c, gin.H{}, "create fail")
+		util.Fail(ctx, gin.H{}, "create fail")
 		return
 	}
-	util.Success(c, gin.H{}, "create success")
+	util.Success(ctx, gin.H{}, "create success")
 }
 
 func (r ResearchController) Update(ctx *gin.Context) {
@@ -171,6 +183,31 @@ func (r ResearchController) Update(ctx *gin.Context) {
 
 func (r ResearchController) Destroy(ctx *gin.Context) {
 	panic("implement me")
+}
+
+func (r ResearchController) Square(ctx *gin.Context) {
+	pagination := form.Pagination{}
+	if err := ctx.ShouldBindQuery(&pagination); err != nil {
+		log.Println(err.Error())
+		util.Success(ctx, nil, "query error")
+		return
+	}
+
+	var researches []model.Research
+	var total int64
+
+	query := make(map[string]interface{})
+	query["status"] = 1
+	if err := researchServices.List(pagination.Page, pagination.Size, &researches, &total, query); err != nil {
+		log.Println(err.Error())
+		util.Success(ctx, nil, "list error")
+	}
+	util.Success(ctx, gin.H{
+		"page":    pagination.Page,
+		"size":    pagination.Size,
+		"results": researches,
+		"total":   total,
+	}, "")
 }
 
 func (r ResearchController) DownloadExcel(ctx *gin.Context) {
