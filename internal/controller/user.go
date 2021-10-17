@@ -95,7 +95,7 @@ func (u UserController) ChangePassword(ctx *gin.Context) {
 		return
 	}
 	user := model.User{}
-	ins := middleware.JWTAuthMiddleware.IdentityHandler(ctx).(model.User)
+	ins := middleware.JWTAuthMiddleware.IdentityHandler(ctx).(*model.User)
 	if err := userServices.Retrieve(&user, int(ins.ID)); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "record not found")
