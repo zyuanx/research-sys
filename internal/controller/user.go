@@ -191,7 +191,7 @@ func (u UserController) Update(ctx *gin.Context) {
 	user := model.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "record not found")
+		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
 	}
 	payload := map[string]interface{}{
@@ -217,13 +217,13 @@ func (u UserController) Destroy(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param error")
+		util.Fail(ctx, gin.H{}, "参数错误")
 		return
 	}
 	if err = userServices.Destroy(id); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "delete fail")
+		util.Fail(ctx, gin.H{}, "删除用户失败")
 		return
 	}
-	util.Success(ctx, gin.H{}, "delete success")
+	util.Success(ctx, gin.H{}, "删除用户成功")
 }

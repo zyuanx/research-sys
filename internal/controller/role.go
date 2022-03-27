@@ -34,23 +34,26 @@ func NewRoleController() IRoleController {
 // @Success 200 {object} res.Result "成功后返回值"
 // @Router /api/role [get]
 func (r RoleController) List(ctx *gin.Context) {
-	//pagination := form.Pagination{}
-	//if err := ctx.ShouldBindQuery(&pagination); err != nil {
-	//	util.Fail(ctx, nil, "query is error")
-	//	return
-	//}
-	//var roles []model.Role
-	//var total int64
-	//if err := roleServices.List(pagination.Page, pagination.Size, &roles, &total); err != nil {
-	//	util.Fail(ctx, nil, "list role error")
-	//	return
-	//}
-	//util.Success(ctx, gin.H{
-	//	"page":    pagination.Page,
-	//	"size":    pagination.Size,
-	//	"results": roles,
-	//	"total":   total,
-	//}, "")
+	pagination := form.Pagination{}
+	if err := ctx.ShouldBindQuery(&pagination); err != nil {
+		util.Fail(ctx, nil, "参数错误")
+		return
+	}
+	var roles []model.Role
+	page, size := pagination.Page, pagination.Size
+	var total int64
+	query := make(map[string]interface{})
+	if err := roleServices.List(&roles, page, size, &total, query); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, nil, "获取数据失败")
+		return
+	}
+	util.Success(ctx, gin.H{
+		"page":    pagination.Page,
+		"size":    pagination.Size,
+		"results": roles,
+		"total":   total,
+	}, "")
 }
 
 // Create
@@ -64,16 +67,18 @@ func (r RoleController) List(ctx *gin.Context) {
 func (r RoleController) Create(ctx *gin.Context) {
 	role := model.Role{}
 	if err := ctx.ShouldBindJSON(&role); err != nil {
-		util.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "参数错误")
 		return
 	}
 	//role := model.Role{}
 	//utils.Struct2StructByJson(createRoleValidate, role)
 	if err := roleServices.Create(&role); err != nil {
-		util.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "创建失败")
 		return
 	}
-	util.Success(ctx, gin.H{"role": role}, "")
+	util.Success(ctx, gin.H{"role": role}, "创建成功")
 }
 
 // Retrieve
@@ -85,28 +90,20 @@ func (r RoleController) Create(ctx *gin.Context) {
 // @Success 200 {object} res.Result "成功后返回值"
 // @Router /api/role/{id} [get]
 func (r RoleController) Retrieve(ctx *gin.Context) {
-	idString := ctx.Param("id")
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		util.Fail(ctx, gin.H{}, err.Error())
+	var id int
+	var err error
+	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "ID错误")
 		return
 	}
 	role := model.Role{}
 	if err = roleServices.Retrieve(&role, id); err != nil {
-		util.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
 	}
-	// get permission id list
-	var permissions []int
-	for _, value := range role.Permissions {
-		permissions = append(permissions, int(value.ID))
-	}
-	util.Success(ctx, gin.H{"role": gin.H{
-		"id":          role.ID,
-		"title":       role.Title,
-		"desc":        role.Desc,
-		"permissions": permissions,
-	}}, "")
+	util.Success(ctx, gin.H{"role": role}, "获取角色信息成功")
 }
 
 // Update
@@ -119,37 +116,41 @@ func (r RoleController) Retrieve(ctx *gin.Context) {
 // @Success 200 {object} res.Result "成功后返回值"
 // @Router /api/role/{id} [put]
 func (r RoleController) Update(ctx *gin.Context) {
-	idString := ctx.Param("id")
-	id, err := strconv.Atoi(idString)
+	var id int
+	var err error
+	id, err = strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param error")
+		util.Fail(ctx, gin.H{}, "ID错误")
 		return
 	}
 	updateForm := form.RoleUpdateForm{}
 	if err = ctx.ShouldBindJSON(&updateForm); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "payload error")
+		util.Fail(ctx, gin.H{}, "参数错误")
 		return
 	}
 	role := model.Role{}
 	if err = roleServices.Retrieve(&role, id); err != nil {
-		util.Fail(ctx, gin.H{}, err.Error())
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
 	}
-	role.Title = updateForm.Title
-	role.Desc = updateForm.Desc
-	if err = roleServices.Update(&role); err != nil {
+	payload := map[string]interface{}{
+		"title": updateForm.Title,
+		"desc":  updateForm.Desc,
+	}
+	if err = roleServices.Update(&role, payload); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "更新角色失败")
 		return
 	}
 	if err = roleServices.UpdatePermission(&role, updateForm.Permissions); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "更新角色失败")
 		return
 	}
-	util.Success(ctx, gin.H{}, "update success")
+	util.Success(ctx, gin.H{}, "更新角色成功")
 }
 
 // Destroy
@@ -161,17 +162,16 @@ func (r RoleController) Update(ctx *gin.Context) {
 // @Success 200 {object} res.Result "成功后返回值"
 // @Router /api/role/{id} [delete]
 func (r RoleController) Destroy(ctx *gin.Context) {
-	idString := ctx.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param error")
+		util.Fail(ctx, gin.H{}, "参数错误")
 		return
 	}
 	if err = roleServices.Destroy(id); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "delete fail")
+		util.Fail(ctx, gin.H{}, "删除角色失败")
 		return
 	}
-	util.Success(ctx, gin.H{}, "delete success")
+	util.Success(ctx, gin.H{}, "删除角色成功")
 }

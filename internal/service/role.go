@@ -10,7 +10,7 @@ type IRoleService interface {
 	List(roles *[]model.Role, page int, size int, total *int64, query map[string]interface{}) error
 	Retrieve(role *model.Role, id int) error
 	Create(role *model.Role) error
-	Update(role *model.Role) error
+	Update(role *model.Role, payload map[string]interface{}) error
 	Destroy(id int) error
 
 	UpdatePermission(role *model.Role, ids []int) error
@@ -48,8 +48,8 @@ func (r RoleService) Create(role *model.Role) error {
 	return nil
 }
 
-func (r RoleService) Update(role *model.Role) error {
-	if err := conf.Mysql.Save(&role).Error; err != nil {
+func (r RoleService) Update(role *model.Role, payload map[string]interface{}) error {
+	if err := conf.Mysql.Model(&role).Updates(payload).Error; err != nil {
 		return err
 	}
 	return nil
