@@ -1,5 +1,7 @@
 FROM golang:alpine AS build
 
+RUN apk add --no-cache ca-certificates && update-ca-certificates
+
 ENV GO111MODULE=on \
     GOPROXY=https://goproxy.cn,direct
 

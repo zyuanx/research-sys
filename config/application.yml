@@ -5,7 +5,7 @@ mysql:
   password: 123456
   host: 127.0.0.1
   port: 3306
-  database: research_sys
+  database: research_dev
   charset: utf8mb4
   parseTime: True
   loc: Local

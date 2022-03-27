@@ -7,8 +7,5 @@ type RecordCreateForm struct {
 }
 
 type RecordUpdateForm struct {
-	Title  string `json:"title" binding:"required"`
-	Desc   string `json:"desc" binding:"required"`
-	Once   int    `json:"once"`
-	Status int    `json:"status"`
+	Status int `json:"status" binding:"required"`
 }

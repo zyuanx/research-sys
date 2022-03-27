@@ -15,6 +15,7 @@ require (
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
+	github.com/magiconair/properties v1.8.1
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/smartystreets/assertions v1.0.0 // indirect

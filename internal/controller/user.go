@@ -15,7 +15,6 @@ import (
 
 type IUserController interface {
 	GetInfo(ctx *gin.Context)
-	ResetPassword(ctx *gin.Context)
 	ChangePassword(ctx *gin.Context)
 
 	List(ctx *gin.Context)
@@ -33,163 +32,124 @@ func NewUserController() IUserController {
 
 var userServices = service.NewUserService()
 
-func (u UserController) GetInfo(c *gin.Context) {
-	claims := jwt.ExtractClaims(c)
+func (u UserController) GetInfo(ctx *gin.Context) {
+	// 获取用户信息
+	claims := jwt.ExtractClaims(ctx)
 	id := int(claims["id"].(float64))
 	user := model.User{}
 	if err := userServices.Retrieve(&user, id); err != nil {
-		util.Fail(c, gin.H{}, "record not found")
+		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
 	}
-	var roles []string
-	for _, value := range user.Roles {
-		roles = append(roles, value.Title)
-	}
-	util.Success(c, gin.H{"user": gin.H{
-		"username":  user.Username,
-		"nickname":  user.Nickname,
-		"telephone": user.Telephone,
-		"email":     user.Email,
-		"roles":     roles,
-	}}, "")
-}
-
-func (u UserController) ResetPassword(c *gin.Context) {
-	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		log.Println(err.Error())
-		util.Fail(c, gin.H{}, "param error")
-		return
-	}
-	user := model.User{}
-	if err = userServices.Retrieve(&user, id); err != nil {
-		log.Println(err.Error())
-		util.Fail(c, gin.H{}, "record not found")
-		return
-	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	if err != nil {
-		log.Println(err.Error())
-		util.Fail(c, gin.H{}, "generate password error")
-		return
-	}
-	user.Password = string(hashedPassword)
-	if err = userServices.Update(&user); err != nil {
-		log.Println(err.Error())
-		util.Fail(c, gin.H{}, "reset password fail")
-		return
-	}
-	util.Success(c, gin.H{}, "reset password success")
+	util.Success(ctx, gin.H{"user": user}, "获取用户信息成功")
 }
 
 func (u UserController) ChangePassword(ctx *gin.Context) {
+	// 用户修改密码
 	passwordForm := form.UserChangePasswordForm{}
-	if err := ctx.ShouldBindJSON(&passwordForm); err != nil {
+	var err error
+	if err = ctx.ShouldBindJSON(&passwordForm); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "payload error")
+		util.Fail(ctx, gin.H{}, "参数错误")
 		return
 	}
 	if passwordForm.Password1 != passwordForm.Password2 {
-		util.Fail(ctx, gin.H{}, "the two passwords don't match")
+		util.Fail(ctx, gin.H{}, "两次密码不一致")
 		return
 	}
 	user := model.User{}
-	ins := middleware.JWTAuthMiddleware.IdentityHandler(ctx).(*model.User)
-	if err := userServices.Retrieve(&user, int(ins.ID)); err != nil {
+	instance := middleware.JWTAuthMiddleware.IdentityHandler(ctx).(*model.User)
+	if err = userServices.Retrieve(&user, int(instance.ID)); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "record not found")
+		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordForm.Password)); err != nil {
-		util.Fail(ctx, gin.H{}, "the password is wrong")
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordForm.Password)); err != nil {
+		util.Fail(ctx, gin.H{}, "原密码错误")
 		return
 	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordForm.Password1), bcrypt.DefaultCost)
-	if err != nil {
+	var hashedPassword []byte
+	if hashedPassword, err = bcrypt.GenerateFromPassword([]byte(passwordForm.Password1), bcrypt.DefaultCost); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "password generate error")
+		util.Fail(ctx, gin.H{}, "生成密码错误")
 		return
+	}
+	payload := map[string]interface{}{
+		"password": string(hashedPassword),
 	}
 	user.Password = string(hashedPassword)
-	if err := userServices.Update(&user); err != nil {
+	if err = userServices.Update(&user, payload); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "update password fail")
+		util.Fail(ctx, gin.H{}, "修改密码错误")
 		return
 	}
-	util.Success(ctx, gin.H{}, "update password success")
-
+	util.Success(ctx, gin.H{}, "修改密码成功")
 }
 
 func (u UserController) List(ctx *gin.Context) {
-	pagination := form.Pagination{}
-	if err := ctx.ShouldBindQuery(&pagination); err != nil {
+	userListQuery := form.UserListQuery{}
+	if err := ctx.ShouldBindQuery(&userListQuery); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, nil, "query error")
+		util.Fail(ctx, nil, "参数错误")
 		return
 	}
 	var users []model.User
+	page, size := userListQuery.Page, userListQuery.Size
 	var total int64
-	if err := userServices.List(pagination.Page, pagination.Size, &users, &total); err != nil {
+	query := make(map[string]interface{})
+	if userListQuery.Username != "" {
+		query["username"] = userListQuery.Username
+	}
+	if userListQuery.Name != "" {
+		query["name"] = userListQuery.Name
+	}
+	if err := userServices.List(&users, page, size, &total, query); err != nil {
 		log.Println(err.Error())
-		util.Success(ctx, nil, "list user error")
+		util.Success(ctx, nil, "获取数据失败")
 		return
 	}
 	util.Success(ctx, gin.H{
-		"page":    pagination.Page,
-		"size":    pagination.Size,
+		"page":    page,
+		"size":    size,
 		"results": users,
 		"total":   total,
 	}, "")
 }
 
 func (u UserController) Retrieve(ctx *gin.Context) {
-	idString := ctx.Param("id")
-	id, err := strconv.Atoi(idString)
-	if err != nil {
+	var id int
+	var err error
+	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param error")
+		util.Fail(ctx, gin.H{}, "ID错误")
 		return
 	}
 	user := model.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "record not found")
-		return
-	}
-	var roles []int
-	if err = userServices.ListRole2(&user, &roles); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "get roles error")
+		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
 	}
 
-	util.Success(ctx, gin.H{"user": gin.H{
-		"id":        user.ID,
-		"username":  user.Username,
-		"nickname":  user.Nickname,
-		"telephone": user.Telephone,
-		"email":     user.Email,
-		"roles":     roles,
-	}}, "")
+	util.Success(ctx, gin.H{"user": user}, "获取用户信息成功")
 }
 
 func (u UserController) Create(ctx *gin.Context) {
 	createForm := form.UserCreateForm{}
-
-	if err := ctx.ShouldBindJSON(&createForm); err != nil {
+	var err error
+	if err = ctx.ShouldBindJSON(&createForm); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "payload is error")
+		util.Fail(ctx, gin.H{}, "参数错误")
 		return
 	}
 	if createForm.Password1 != createForm.Password2 {
-		util.Fail(ctx, gin.H{}, "the two passwords don't match")
+		util.Fail(ctx, gin.H{}, "两次密码不一致")
 		return
 	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(createForm.Password1), bcrypt.DefaultCost)
-	if err != nil {
+	var hashedPassword []byte
+	if hashedPassword, err = bcrypt.GenerateFromPassword([]byte(createForm.Password1), bcrypt.DefaultCost); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "password generate error")
+		util.Fail(ctx, gin.H{}, "生成密码错误")
 		return
 	}
 	user := model.User{
@@ -201,30 +161,31 @@ func (u UserController) Create(ctx *gin.Context) {
 	}
 	if err = userServices.Create(&user); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "create fail")
+		util.Fail(ctx, gin.H{}, "创建用户失败")
 		return
 	}
 	// 更新为公共角色
-	if err = userServices.UpdateRole(&user, []int{1}); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "update fail")
-		return
-	}
-	util.Success(ctx, gin.H{}, "create success")
+	//if err = userServices.UpdateRole(&user, []int{1}); err != nil {
+	//	log.Println(err.Error())
+	//	util.Fail(ctx, gin.H{}, "更新角色失败")
+	//	return
+	//}
+	util.Success(ctx, gin.H{}, "创建用户成功")
 }
 
 func (u UserController) Update(ctx *gin.Context) {
-	idString := ctx.Param("id")
-	id, err := strconv.Atoi(idString)
+	var id int
+	var err error
+	id, err = strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param error")
+		util.Fail(ctx, gin.H{}, "ID错误")
 		return
 	}
 	updateForm := form.UserUpdateForm{}
 	if err = ctx.ShouldBindJSON(&updateForm); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "payload error")
+		util.Fail(ctx, gin.H{}, "参数错误")
 		return
 	}
 	user := model.User{}
@@ -233,25 +194,27 @@ func (u UserController) Update(ctx *gin.Context) {
 		util.Fail(ctx, gin.H{}, "record not found")
 		return
 	}
-	user.Nickname = updateForm.Nickname
-	user.Telephone = updateForm.Telephone
-	user.Email = updateForm.Email
-	if err = userServices.Update(&user); err != nil {
+	payload := map[string]interface{}{
+		"nickname":  updateForm.Nickname,
+		"telephone": updateForm.Telephone,
+		"email":     updateForm.Email,
+		//"roles":     updateForm.Roles,
+	}
+	if err = userServices.Update(&user, payload); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "更新用户失败")
 		return
 	}
 	if err = userServices.UpdateRole(&user, updateForm.Roles); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "更新用户失败")
 		return
 	}
-	util.Success(ctx, gin.H{}, "update success")
+	util.Success(ctx, gin.H{}, "更新成功")
 }
 
 func (u UserController) Destroy(ctx *gin.Context) {
-	idString := ctx.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "param error")

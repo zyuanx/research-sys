@@ -18,7 +18,6 @@ func RegisterUserRouter(r *gin.RouterGroup) {
 		group.GET("/refresh_token", middleware.JWTAuthMiddleware.RefreshHandler)
 		group.GET("/info", userController.GetInfo)
 
-		group.PUT("/reset/password/:id", userController.ResetPassword)
 		group.PUT("/change/password", userController.ChangePassword)
 
 		group.GET("", userController.List)

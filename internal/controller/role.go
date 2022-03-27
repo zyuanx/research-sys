@@ -34,23 +34,23 @@ func NewRoleController() IRoleController {
 // @Success 200 {object} res.Result "成功后返回值"
 // @Router /api/role [get]
 func (r RoleController) List(ctx *gin.Context) {
-	pagination := form.Pagination{}
-	if err := ctx.ShouldBindQuery(&pagination); err != nil {
-		util.Fail(ctx, nil, "query is error")
-		return
-	}
-	var roles []model.Role
-	var total int64
-	if err := roleServices.List(pagination.Page, pagination.Size, &roles, &total); err != nil {
-		util.Fail(ctx, nil, "list role error")
-		return
-	}
-	util.Success(ctx, gin.H{
-		"page":    pagination.Page,
-		"size":    pagination.Size,
-		"results": roles,
-		"total":   total,
-	}, "")
+	//pagination := form.Pagination{}
+	//if err := ctx.ShouldBindQuery(&pagination); err != nil {
+	//	util.Fail(ctx, nil, "query is error")
+	//	return
+	//}
+	//var roles []model.Role
+	//var total int64
+	//if err := roleServices.List(pagination.Page, pagination.Size, &roles, &total); err != nil {
+	//	util.Fail(ctx, nil, "list role error")
+	//	return
+	//}
+	//util.Success(ctx, gin.H{
+	//	"page":    pagination.Page,
+	//	"size":    pagination.Size,
+	//	"results": roles,
+	//	"total":   total,
+	//}, "")
 }
 
 // Create

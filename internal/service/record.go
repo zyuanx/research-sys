@@ -1,13 +1,9 @@
 package service
 
 import (
-	"context"
 	"gin-research-sys/internal/conf"
 	"gin-research-sys/internal/model"
 	"gin-research-sys/internal/util"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type RecordService struct{}
@@ -71,40 +67,40 @@ func (r RecordService) ListID(id string, records *[]model.Record, total *int64) 
 	return nil
 }
 
-type RecordMgoService struct{}
-
-func NewRecordMgoService() IRecordMgoService {
-	return RecordMgoService{}
-}
-
-type IRecordMgoService interface {
-	Create(research *model.RecordMgo) (*mongo.InsertOneResult, error)
-	Retrieve(research *model.RecordMgo, id string) error
-}
-
-func (r RecordMgoService) Create(record *model.RecordMgo) (*mongo.InsertOneResult, error) {
-	collection := conf.Mongo.
-		Database("test").
-		Collection("record")
-
-	one, err := collection.InsertOne(context.TODO(), record)
-	if err != nil {
-		return nil, err
-	}
-	return one, nil
-}
-
-func (r RecordMgoService) Retrieve(research *model.RecordMgo, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	filter := bson.M{"_id": objectID}
-	collection := conf.Mongo.
-		Database("test").
-		Collection("record")
-	if err = collection.FindOne(context.TODO(), filter).Decode(&research); err != nil {
-		return err
-	}
-	return nil
-}
+//type RecordMgoService struct{}
+//
+//func NewRecordMgoService() IRecordMgoService {
+//	return RecordMgoService{}
+//}
+//
+//type IRecordMgoService interface {
+//	Create(research *model.RecordMgo) (*mongo.InsertOneResult, error)
+//	Retrieve(research *model.RecordMgo, id string) error
+//}
+//
+//func (r RecordMgoService) Create(record *model.RecordMgo) (*mongo.InsertOneResult, error) {
+//	collection := conf.Mongo.
+//		Database("test").
+//		Collection("record")
+//
+//	one, err := collection.InsertOne(context.TODO(), record)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return one, nil
+//}
+//
+//func (r RecordMgoService) Retrieve(research *model.RecordMgo, id string) error {
+//	objectID, err := primitive.ObjectIDFromHex(id)
+//	if err != nil {
+//		return err
+//	}
+//	filter := bson.M{"_id": objectID}
+//	collection := conf.Mongo.
+//		Database("test").
+//		Collection("record")
+//	if err = collection.FindOne(context.TODO(), filter).Decode(&research); err != nil {
+//		return err
+//	}
+//	return nil
+//}

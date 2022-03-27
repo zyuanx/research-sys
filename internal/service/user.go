@@ -7,16 +7,15 @@ import (
 )
 
 type IUserService interface {
-	FindUserByUsername(user *model.User) error
+	FindByUsername(user *model.User, username string) error
 
-	List(page int, size int, users *[]model.User, total *int64) error
+	List(users *[]model.User, page int, size int, total *int64, query map[string]interface{}) error
 	Retrieve(user *model.User, id int) error
 	Create(user *model.User) error
-	Update(user *model.User) error
+	Update(user *model.User, payload map[string]interface{}) error
+	UpdateByUser(user *model.User, patch map[string]interface{}) (err error)
 	Destroy(id int) error
-
-	ListRole2(user *model.User, roles *[]int) error
-	UpdateRole(user *model.User, ids []int) error
+	UpdateRole(user *model.User, rolesID []int) error
 }
 type UserService struct{}
 
@@ -24,17 +23,18 @@ func NewUserService() IUserService {
 	return UserService{}
 }
 
-func (u UserService) FindUserByUsername(user *model.User) error {
-	if err := conf.Mysql.
-		Where("username = ?", user.Username).
+func (u UserService) FindByUsername(user *model.User, username string) error {
+	if err := conf.Mysql.Model(&model.User{}).
+		Where("username = ?", username).
 		First(&user).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (u UserService) List(page int, size int, users *[]model.User, total *int64) error {
-	if err := conf.Mysql.Model(&model.User{}).Count(total).
+func (u UserService) List(users *[]model.User, page int, size int, total *int64, query map[string]interface{}) error {
+	if err := conf.Mysql.Model(&model.User{}).
+		Where(query).Count(total).
 		Scopes(util.Paginate(page, size)).
 		Find(&users).Error; err != nil {
 		return err
@@ -58,8 +58,15 @@ func (u UserService) Create(user *model.User) error {
 	return nil
 }
 
-func (u UserService) Update(user *model.User) error {
-	if err := conf.Mysql.Save(&user).Error; err != nil {
+func (u UserService) Update(user *model.User, payload map[string]interface{}) error {
+	if err := conf.Mysql.Model(&user).Updates(payload).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u UserService) UpdateByUser(user *model.User, patch map[string]interface{}) error {
+	if err := conf.Mysql.Model(&user).Updates(patch).Error; err != nil {
 		return err
 	}
 	return nil
@@ -72,18 +79,9 @@ func (u UserService) Destroy(id int) error {
 	return nil
 }
 
-func (u UserService) ListRole2(user *model.User, roles *[]int) error {
-	var t []int
-	for _, value := range user.Roles {
-		t = append(t, int(value.ID))
-	}
-	*roles = t
-	return nil
-}
-
-func (u UserService) UpdateRole(user *model.User, ids []int) error {
+func (u UserService) UpdateRole(user *model.User, rolesID []int) error {
 	var roles []model.Role
-	if err := conf.Mysql.Model(&model.Role{}).Find(&roles, "id IN ?", ids).Error; err != nil {
+	if err := conf.Mysql.Model(&model.Role{}).Find(&roles, "id IN ?", rolesID).Error; err != nil {
 		return err
 	}
 	if err := conf.Mysql.Model(&user).Association("Roles").Replace(roles); err != nil {

@@ -18,6 +18,4 @@ func RegisterResearchRouter(r *gin.RouterGroup) {
 	//group.DELETE("/:id", researchController.Destroy)
 	group.GET("/square", researchController.Square)
 	group.GET("/export/:id", researchController.DownloadExcel)
-
-	group.GET("/mgo/:id", researchController.MgoRetrieve)
 }

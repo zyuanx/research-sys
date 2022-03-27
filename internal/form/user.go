@@ -8,11 +8,8 @@ type LoginValidator struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
-type UserResetPasswordForm struct {
-	Password string `json:"password" binding:"required"`
-}
 type UserChangePasswordForm struct {
-	Password string `json:"password" binding:"required"`
+	Password  string `json:"password" binding:"required"`
 	Password1 string `json:"password1" binding:"required"`
 	Password2 string `json:"password2" binding:"required"`
 }
@@ -33,6 +30,11 @@ type UserUpdateForm struct {
 	Roles     []int  `json:"roles"`
 }
 
+type UserListQuery struct {
+	Pagination
+	Username string `json:"username"`
+	Name     string `json:"name"`
+}
 
 func (r *LoginValidator) GetError(err error) string {
 	errors := err.(validator.ValidationErrors)

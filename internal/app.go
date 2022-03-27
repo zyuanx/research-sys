@@ -9,7 +9,6 @@ func App() *gin.Engine {
 	initialize.Zap()
 	initialize.Viper()
 	initialize.MySQL()
-	initialize.MongoDB()
 	initialize.CreateAdmin()
 	//initialize.Redis()
 	initialize.Casbin()

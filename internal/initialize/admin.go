@@ -9,11 +9,10 @@ import (
 
 func CreateAdmin() {
 	userService := service.NewUserService()
-	user := model.User{
-		Username: "admin",
-	}
-	if err := userService.FindUserByUsername(&user); err != nil {
+	user := model.User{}
+	if err := userService.FindByUsername(&user, "admin"); err != nil {
 		log.Println("err", err)
+		return
 	}
 	if user.ID != 0 {
 		log.Println("admin already exists")

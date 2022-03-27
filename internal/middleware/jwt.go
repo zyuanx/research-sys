@@ -39,8 +39,6 @@ func init() {
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
-			// 此处返回值类型 interface{} 与 payloadFunc 和 Authenticator 的data类型必须一致,
-			// 否则会导致授权失败
 			return &model.User{
 				Username: claims["username"].(string),
 				BaseModel: model.BaseModel{
@@ -53,12 +51,9 @@ func init() {
 			if err := c.ShouldBindJSON(&login); err != nil {
 				return nil, errors.New("payload is error")
 			}
-			user := model.User{
-				Username: login.Username,
-				Password: login.Password,
-			}
+			user := model.User{}
 			userService := service.NewUserService()
-			if err := userService.FindUserByUsername(&user); err != nil {
+			if err := userService.FindByUsername(&user, login.Username); err != nil {
 				return nil, err
 			}
 			err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password))
@@ -74,7 +69,7 @@ func init() {
 			return false
 		},
 		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.JSON(code, gin.H{
+			c.JSON(http.StatusOK, gin.H{
 				"code":    code,
 				"message": message,
 			})

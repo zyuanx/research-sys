@@ -7,7 +7,7 @@ import (
 )
 
 type IRoleService interface {
-	List(page int, size int, roles *[]model.Role, total *int64) error
+	List(roles *[]model.Role, page int, size int, total *int64, query map[string]interface{}) error
 	Retrieve(role *model.Role, id int) error
 	Create(role *model.Role) error
 	Update(role *model.Role) error
@@ -22,8 +22,9 @@ func NewRoleService() IRoleService {
 	return RoleService{}
 }
 
-func (r RoleService) List(page int, size int, roles *[]model.Role, total *int64) error {
-	if err := conf.Mysql.Model(&model.Role{}).Count(total).
+func (r RoleService) List(roles *[]model.Role, page int, size int, total *int64, query map[string]interface{}) error {
+	if err := conf.Mysql.Model(&model.Role{}).
+		Where(query).Count(total).
 		Scopes(util.Paginate(page, size)).
 		Find(&roles).Error; err != nil {
 		return err
@@ -60,7 +61,6 @@ func (r RoleService) Destroy(id int) error {
 	}
 	return nil
 }
-
 
 func (r RoleService) UpdatePermission(role *model.Role, ids []int) error {
 	var permissions []model.Permission

@@ -2,15 +2,11 @@ package model
 
 type Record struct {
 	BaseModel
-	Title      string `gorm:"size:32,not null" json:"title"`
-	ResearchID string `gorm:"size:128;index" json:"researchID"`
-	RecordID   string `gorm:"size:128" json:"recordID"`
-	IP         string `gorm:"size:64" json:"ip"`
-	Publisher  int    `gorm:"size:64;index" json:"publisher"`
-	UserID     int    `json:"-"`
-	User       User   `json:"user"`
-}
-
-type RecordMgo struct {
-	FieldsValue map[string]interface{} `json:"fieldsValue" bson:"fieldsValue"`
+	ResearchID  int      `gorm:"comment:问卷ID" json:"-"`
+	Research    Research `gorm:"foreignKey:ResearchID" json:"research"`
+	IP          string   `gorm:"size:64;comment:填写IP" json:"ip"`
+	Status      int      `gorm:"size:8;index;comment:审核状态" json:"status"`
+	FieldsValue string   `gorm:"type:text" bson:"fieldsValue"`
+	WriterID    int      `gorm:"comment:填写者ID" json:"-"`
+	Writer      User     `json:"writer"`
 }
