@@ -25,7 +25,6 @@ func (r RecordService) List(page int, size int, records *[]model.Record, total *
 	if err := conf.Mysql.Model(&model.Record{}).
 		Where(query).
 		Count(total).
-		Preload("User").
 		Scopes(util.Paginate(page, size)).
 		Find(&records).Error; err != nil {
 		return err
@@ -67,40 +66,50 @@ func (r RecordService) ListID(id string, records *[]model.Record, total *int64) 
 	return nil
 }
 
-//type RecordMgoService struct{}
-//
-//func NewRecordMgoService() IRecordMgoService {
-//	return RecordMgoService{}
-//}
-//
-//type IRecordMgoService interface {
-//	Create(research *model.RecordMgo) (*mongo.InsertOneResult, error)
-//	Retrieve(research *model.RecordMgo, id string) error
-//}
-//
-//func (r RecordMgoService) Create(record *model.RecordMgo) (*mongo.InsertOneResult, error) {
-//	collection := conf.Mongo.
-//		Database("test").
-//		Collection("record")
-//
-//	one, err := collection.InsertOne(context.TODO(), record)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return one, nil
-//}
-//
-//func (r RecordMgoService) Retrieve(research *model.RecordMgo, id string) error {
-//	objectID, err := primitive.ObjectIDFromHex(id)
-//	if err != nil {
-//		return err
-//	}
-//	filter := bson.M{"_id": objectID}
-//	collection := conf.Mongo.
-//		Database("test").
-//		Collection("record")
-//	if err = collection.FindOne(context.TODO(), filter).Decode(&research); err != nil {
-//		return err
-//	}
-//	return nil
-//}
+type OpenRecordService struct{}
+
+func NewOpenRecordService() IOpenRecordService {
+	return OpenRecordService{}
+}
+
+type IOpenRecordService interface {
+	List(page int, size int, records *[]model.OpenRecord, total *int64, query map[string]interface{}) error
+	Retrieve(record *model.OpenRecord, id int) error
+	Create(record *model.OpenRecord) error
+	ListByResearchID(records *[]model.OpenRecord, researchID uint) error
+}
+
+func (o OpenRecordService) List(page int, size int, records *[]model.OpenRecord,
+	total *int64, query map[string]interface{}) error {
+	if err := conf.Mysql.Model(&model.OpenRecord{}).
+		Where(query).
+		Count(total).
+		Scopes(util.Paginate(page, size)).
+		Find(&records).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o OpenRecordService) Retrieve(record *model.OpenRecord, id int) error {
+	if err := conf.Mysql.Model(&model.OpenRecord{}).First(&record, id).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o OpenRecordService) Create(record *model.OpenRecord) error {
+	if err := conf.Mysql.Model(&model.OpenRecord{}).Create(&record).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o OpenRecordService) ListByResearchID(records *[]model.OpenRecord, researchID uint) error {
+	if err := conf.Mysql.Model(&model.OpenRecord{}).
+		Where("research_id = ?", researchID).
+		Find(&records).Error; err != nil {
+		return err
+	}
+	return nil
+}

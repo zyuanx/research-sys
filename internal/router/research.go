@@ -13,9 +13,10 @@ func RegisterResearchRouter(r *gin.RouterGroup) {
 	group.Use(middleware.JWTAuthMiddleware.MiddlewareFunc())
 	group.GET("", researchController.List)
 	group.GET("/:id", researchController.Retrieve)
+	r.GET("/open/:id", researchController.RetrieveOpen)
 	group.POST("", researchController.Create)
 	group.PUT("/:id", researchController.Update)
-	//group.DELETE("/:id", researchController.Destroy)
+	group.DELETE("/:id", researchController.Destroy)
 	group.GET("/square", researchController.Square)
-	group.GET("/export/:id", researchController.DownloadExcel)
+	r.GET("/export/:id", researchController.DownloadExcel)
 }

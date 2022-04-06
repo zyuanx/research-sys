@@ -92,6 +92,7 @@ func init() {
 				},
 			})
 		},
+		TokenLookup: "header: Authorization, query: token, cookie: jwt",
 	})
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())

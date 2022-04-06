@@ -13,7 +13,6 @@ type IUserService interface {
 	Retrieve(user *model.User, id int) error
 	Create(user *model.User) error
 	Update(user *model.User, payload map[string]interface{}) error
-	UpdateByUser(user *model.User, patch map[string]interface{}) (err error)
 	Destroy(id int) error
 	UpdateRole(user *model.User, rolesID []int) error
 }
@@ -60,13 +59,6 @@ func (u UserService) Create(user *model.User) error {
 
 func (u UserService) Update(user *model.User, payload map[string]interface{}) error {
 	if err := conf.Mysql.Model(&user).Updates(payload).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (u UserService) UpdateByUser(user *model.User, patch map[string]interface{}) error {
-	if err := conf.Mysql.Model(&user).Updates(patch).Error; err != nil {
 		return err
 	}
 	return nil

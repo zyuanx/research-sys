@@ -34,11 +34,8 @@ func MySQL() {
 
 func autoMigrate() {
 	err := conf.Mysql.AutoMigrate(
-		new(model.User),
-		new(model.Role),
-		new(model.Permission),
-		new(model.Research),
-		new(model.Record),
+		model.User{}, model.Role{}, model.Permission{},
+		model.Research{}, model.Record{}, model.OpenRecord{},
 	)
 	if err != nil {
 		panic(fmt.Sprintf("数据库迁移异常: %v", err))

@@ -18,16 +18,17 @@ func CreateAdmin() {
 		log.Println("admin already exists")
 		return
 	}
+	user.Username = "admin"
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 	user.Password = string(hashedPassword)
 	user.Roles = []*model.Role{
 		{
-			Title: "common",
-			Desc:  "common",
+			Title:       "admin",
+			Description: "admin",
 		},
 		{
-			Title: "admin",
-			Desc:  "superuser",
+			Title:       "super",
+			Description: "super",
 		},
 	}
 	if err := userService.Create(&user); err != nil {

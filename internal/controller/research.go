@@ -1,14 +1,19 @@
 package controller
 
 import (
+	"encoding/json"
+	"fmt"
 	"gin-research-sys/internal/form"
 	"gin-research-sys/internal/model"
+	"gin-research-sys/internal/request"
 	"gin-research-sys/internal/response"
 	"gin-research-sys/internal/service"
 	"gin-research-sys/internal/util"
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net/http"
 	"strconv"
 )
 
@@ -16,6 +21,7 @@ type IResearchController interface {
 	List(c *gin.Context)
 	Create(c *gin.Context)
 	Retrieve(c *gin.Context)
+	RetrieveOpen(c *gin.Context)
 	Update(c *gin.Context)
 	Destroy(c *gin.Context)
 
@@ -30,164 +36,167 @@ func NewResearchController() IResearchController {
 }
 
 var researchServices = service.NewResearchService()
-
-//var researchMgoServices = service.NewResearchMgoService()
+var openRecordServices = service.NewOpenRecordService()
 
 func (r ResearchController) List(ctx *gin.Context) {
 	pagination := form.Pagination{}
 	if err := ctx.ShouldBindQuery(&pagination); err != nil {
 		log.Println(err.Error())
-		util.Success(ctx, nil, "query error")
+		util.Fail(ctx, nil, "参数错误")
 		return
 	}
-
 	var researches []model.Research
+	page, size := pagination.Page, pagination.Size
 	var total int64
 
-	// not admin, retrieve created by yourself
+	// 不是超管只可查看自己发布的问卷
 	query := make(map[string]interface{})
 	claims := jwt.ExtractClaims(ctx)
 	id := int(claims["id"].(float64))
-	username := claims["username"].(string)
-	if username != "admin" {
-		query["user_id"] = id
+	if username := claims["username"].(string); username != "admin" {
+		query["publisher_id"] = id
 	}
-	if err := researchServices.List(pagination.Page, pagination.Size, &researches, &total, query); err != nil {
+	if err := researchServices.List(&researches, page, size, &total, query); err != nil {
 		log.Println(err.Error())
-		util.Success(ctx, nil, "list error")
+		util.Success(ctx, nil, "获取数据失败")
+		return
 	}
 	util.Success(ctx, gin.H{
 		"page":    pagination.Page,
 		"size":    pagination.Size,
 		"results": researches,
 		"total":   total,
-	}, "")
+	}, "获取数据成功")
 }
 
 func (r ResearchController) Retrieve(ctx *gin.Context) {
-	//idString := ctx.Param("id")
-	//id, err := strconv.Atoi(idString)
-	//if err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "param is error")
-	//	return
-	//}
-	//research := model.Research{}
-	//if err = researchServices.Retrieve(&research, id); err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "retrieve1 fail")
-	//	return
-	//}
-	//researchMgo := model.ResearchMgo{}
-	//if err = researchMgoServices.Retrieve(&researchMgo, research.ResearchID); err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "retrieve2 fail")
-	//	return
-	//}
-	//
-	//util.Success(ctx, gin.H{"research": gin.H{
-	//	"id":          research.ID,
-	//	"title":       research.Title,
-	//	"desc":        research.Desc,
-	//	"status":      research.Status,
-	//	"once":        research.Once,
-	//	"researchID":  research.ResearchID,
-	//	"detail":      researchMgo.Detail,
-	//	"rules":       researchMgo.Rules,
-	//	"fieldsValue": researchMgo.FieldsValue,
-	//	"creator":     research.UserID,
-	//}}, "")
-}
-
-func (r ResearchController) Create(ctx *gin.Context) {
-	//createForm := form.ResearchCreateForm{}
-	//if err := ctx.ShouldBindJSON(&createForm); err != nil {
-	//	util.Fail(ctx, gin.H{}, "payload error")
-	//	return
-	//}
-	//// there needs mongo transaction
-	//researchMgo := model.ResearchMgo{
-	//	Detail:      createForm.Detail,
-	//	Rules:       createForm.Rules,
-	//	FieldsValue: createForm.FieldsValue,
-	//}
-	//result, err := researchMgoServices.Create(&researchMgo)
-	//if err != nil {
-	//	util.Fail(ctx, gin.H{}, "create error")
-	//	return
-	//}
-	//claims := jwt.ExtractClaims(ctx)
-	//id := int(claims["id"].(float64))
-	//research := model.Research{
-	//	Title:  createForm.Title,
-	//	Desc:   createForm.Desc,
-	//	Access: createForm.Access,
-	//	Once:   createForm.Once,
-	//	UserID: id,
-	//}
-	//if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
-	//	research.ResearchID = oid.Hex()
-	//} else {
-	//	log.Println(ok)
-	//	util.Fail(ctx, gin.H{}, "create fail")
-	//	return
-	//}
-	//if err = researchServices.Create(&research); err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "create fail")
-	//	return
-	//}
-	//util.Success(ctx, gin.H{}, "create success")
-}
-
-func (r ResearchController) Update(ctx *gin.Context) {
-	idString := ctx.Param("id")
-	id, err := strconv.Atoi(idString)
-	if err != nil {
+	var id int
+	var err error
+	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param is error")
-		return
-	}
-	updateForm := form.ResearchUpdateForm{}
-	if err = ctx.ShouldBindJSON(&updateForm); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "payload is error")
+		util.Fail(ctx, gin.H{}, "ID错误")
 		return
 	}
 	research := model.Research{}
 	if err = researchServices.Retrieve(&research, id); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "retrieve fail")
+		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
 	}
-	research.Title = updateForm.Title
-	research.Desc = updateForm.Desc
-	research.Once = updateForm.Once
-	research.Status = updateForm.Status
-	if err = researchServices.Update(&research); err != nil {
+	util.Success(ctx, gin.H{"research": research}, "获取信息成功")
+}
+
+func (r ResearchController) RetrieveOpen(ctx *gin.Context) {
+	var id int
+	var err error
+	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "update fail")
+		util.Fail(ctx, gin.H{}, "ID错误")
 		return
 	}
-	//res.Success(ctx, gin.H{}, "update success")
-	//research := bson.M{}
-	//if err := researchServices.Update(idString, research); err != nil {
-	//	res.Fail(ctx, gin.H{}, "update fail")
-	//	log.Println(err.Error())
-	//	return
-	//}
-	util.Success(ctx, gin.H{}, "update success")
+	research := model.Research{}
+	if err = researchServices.Retrieve(&research, id); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "未找到记录")
+		return
+	}
+	if research.Open == 0 {
+		util.Fail(ctx, gin.H{}, "非开放问卷")
+		return
+	}
+	util.Success(ctx, gin.H{"research": research}, "获取信息成功")
+}
+
+func (r ResearchController) Create(ctx *gin.Context) {
+	createForm := form.ResearchCreateForm{}
+	if err := ctx.ShouldBindJSON(&createForm); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "参数错误")
+		return
+	}
+
+	claims := jwt.ExtractClaims(ctx)
+	id := int(claims["id"].(float64))
+	research := model.Research{
+		Title:       createForm.Title,
+		Description: createForm.Description,
+		Config:      createForm.Config,
+		Items:       createForm.Items,
+		Values:      createForm.Values,
+		StartAt:     createForm.StartAt,
+		EndAt:       createForm.EndAt,
+		Access:      createForm.Access,
+		Once:        createForm.Once,
+		Open:        createForm.Open,
+		PublisherID: id,
+	}
+
+	if err := researchServices.Create(&research); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "创建失败")
+		return
+	}
+	util.Success(ctx, gin.H{}, "创建成功")
+}
+
+func (r ResearchController) Update(ctx *gin.Context) {
+	var id int
+	var err error
+	id, err = strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "ID错误")
+		return
+	}
+	updatePayload := request.ResearchUpdatePayload{}
+	if err = ctx.ShouldBindJSON(&updatePayload); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "参数错误")
+		return
+	}
+	research := model.Research{}
+	if err = researchServices.Retrieve(&research, id); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "未找到记录")
+		return
+	}
+	payload := map[string]interface{}{
+		"title":       updatePayload.Title,
+		"description": updatePayload.Description,
+		"config":      updatePayload.Config,
+		"start_at":    updatePayload.StartAt,
+		"end_at":      updatePayload.EndAt,
+		"access":      updatePayload.Access,
+		"once":        updatePayload.Once,
+	}
+	if err = researchServices.Update(&research, payload); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "更新失败")
+		return
+	}
+	util.Success(ctx, gin.H{}, "更新成功")
 }
 
 func (r ResearchController) Destroy(ctx *gin.Context) {
-	panic("implement me")
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "参数错误")
+		return
+	}
+	if err = researchServices.Destroy(id); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "删除失败")
+		return
+	}
+	util.Success(ctx, gin.H{}, "删除成功")
 }
 
 func (r ResearchController) Square(ctx *gin.Context) {
 	pagination := form.Pagination{}
 	if err := ctx.ShouldBindQuery(&pagination); err != nil {
 		log.Println(err.Error())
-		util.Success(ctx, nil, "query error")
+		util.Fail(ctx, nil, "参数错误")
 		return
 	}
 
@@ -195,110 +204,112 @@ func (r ResearchController) Square(ctx *gin.Context) {
 	id := int(claims["id"].(float64))
 	user := model.User{}
 	if err := userServices.Retrieve(&user, id); err != nil {
-		util.Fail(ctx, gin.H{}, "record not found")
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
 	}
 
 	var researches []response.ResearchResponse
+	page, size := pagination.Page, pagination.Size
 	var total int64
 
 	query := make(map[string]interface{})
-	query["status"] = 1
 	query["access"] = user.College
-	if err := researchServices.FindByAccess(pagination.Page, pagination.Size, &researches, &total, query); err != nil {
+	if err := researchServices.FindByAccess(&researches, page, size, &total, query); err != nil {
 		log.Println(err.Error())
-		util.Success(ctx, nil, "list error")
+		util.Fail(ctx, nil, "获取数据失败")
+		return
 	}
 	util.Success(ctx, gin.H{
 		"page":    pagination.Page,
 		"size":    pagination.Size,
 		"results": researches,
 		"total":   total,
-	}, "")
+	}, "获取数据成功")
 }
 
 func (r ResearchController) DownloadExcel(ctx *gin.Context) {
-	//idString := ctx.Param("id")
-	//// get research
-	//researchMgo := model.ResearchMgo{}
-	//if err := researchMgoServices.Retrieve(&researchMgo, idString); err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "retrieve2 fail")
-	//	return
-	//}
-	//// set the excel title line
-	//var fields []string
-	//titleRow := make([]interface{}, 0)
-	//titleRow = append(titleRow, "用户名", "IP地址", "填写时间")
-	//for _, v := range researchMgo.Detail {
-	//	titleRow = append(titleRow, v["label"].(string))
-	//	fields = append(fields, v["fieldId"].(string))
-	//}
-	//
-	//// get record list
-	//var records []model.Record
-	//var total int64
-	//if err := recordServices.ListID(idString, &records, &total); err != nil {
-	//	log.Println(err.Error())
-	//	util.Success(ctx, nil, "list error")
-	//	return
-	//}
-	//
-	//// 1. start generate excel
-	//xlsx := excelize.NewFile()
-	//// 2. new StreamWriter
-	//streamWriter, err := xlsx.NewStreamWriter("Sheet1")
-	//if err != nil {
-	//	println(err.Error())
-	//}
-	//if _, err = xlsx.NewStyle(`{"font":{"color":"#777777"}}`); err != nil {
-	//	println(err.Error())
-	//}
-	//// 3. write title
-	//if err = streamWriter.SetRow("A1", titleRow); err != nil {
-	//	return
-	//}
-	//
-	//// 4. write record data
-	//for k, v := range records {
-	//	row := make([]interface{}, 0)
-	//	row = append(row, v.User.Username)
-	//	row = append(row, v.IP)
-	//	row = append(row, v.CreatedAt.Format("2006-01-02 15:04:05"))
-	//	for colID := 0; colID < len(fields); colID++ {
-	//		mgo := model.RecordMgo{}
-	//		if err = recordMgoServices.Retrieve(&mgo, v.RecordID); err != nil {
-	//			println(err.Error())
-	//		}
-	//		row = append(row, mgo.FieldsValue[fields[colID]])
-	//	}
-	//	cell, _ := excelize.CoordinatesToCellName(1, k+2)
-	//	if err = streamWriter.SetRow(cell, row); err != nil {
-	//		println(err.Error())
-	//	}
-	//}
-	//// 5. flush streamWriter
-	//if err = streamWriter.Flush(); err != nil {
-	//	println(err.Error())
-	//}
-	//ctx.Header("response-type", "blob")
-	//data, _ := xlsx.WriteToBuffer()
-	//ctx.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", data.Bytes())
-}
+	var id int
+	var err error
+	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "ID错误")
+		return
+	}
 
-//func (r ResearchController) MgoRetrieve(ctx *gin.Context) {
-//	idString := ctx.Param("id")
-//
-//	researchMgo := model.ResearchMgo{}
-//	if err := researchMgoServices.Retrieve(&researchMgo, idString); err != nil {
-//		log.Println(err.Error())
-//		util.Fail(ctx, gin.H{}, "retrieve2 fail")
-//		return
-//	}
-//
-//	util.Success(ctx, gin.H{"research": gin.H{
-//		"detail":      researchMgo.Detail,
-//		"rules":       researchMgo.Rules,
-//		"fieldsValue": researchMgo.FieldsValue,
-//	}}, "")
-//}
+	research := model.Research{}
+	if err = researchServices.Retrieve(&research, id); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "获取信息失败")
+		return
+	}
+
+	var items []map[string]interface{}
+	if err = json.Unmarshal([]byte(research.Items), &items); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "数据解析失败")
+		return
+	}
+	titles := []interface{}{"序号"}
+	var fieldIDs []string
+	for _, item := range items {
+		fmt.Println(item)
+		titles = append(titles, item["label"].(string))
+		fieldIDs = append(fieldIDs, item["fieldID"].(string))
+	}
+	titles = append(titles, "IP地址", "填写时间")
+
+	var openRecords []model.OpenRecord
+	if err = openRecordServices.ListByResearchID(&openRecords, research.ID); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, nil, "获取数据失败")
+		return
+	}
+	// 1. start generate excel
+	xlsx := excelize.NewFile()
+	// 2. new StreamWriter
+	streamWriter, _ := xlsx.NewStreamWriter("Sheet1")
+	if _, err = xlsx.NewStyle(`{"font":{"color":"#777777"}}`); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, nil, "设置样式失败")
+		return
+	}
+	// 3. write title
+	if err = streamWriter.SetRow("A1", titles); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, nil, "写入Row失败")
+		return
+	}
+
+	// 4. write record data
+	for k, v := range openRecords {
+		row := []interface{}{k + 1}
+		values := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(v.Values), &values); err != nil {
+			log.Println(err.Error())
+			util.Fail(ctx, gin.H{}, "数据解析失败")
+			return
+		}
+		for _, fieldID := range fieldIDs {
+			row = append(row, values[fieldID])
+		}
+		row = append(row, v.IPAddress)
+		row = append(row, v.CreatedAt.Format("2006-01-02 15:04:05"))
+
+		cell, _ := excelize.CoordinatesToCellName(1, k+2)
+		if err = streamWriter.SetRow(cell, row); err != nil {
+			log.Println(err.Error())
+			util.Fail(ctx, nil, "写入Row失败")
+			return
+		}
+	}
+	// 5. flush streamWriter
+	if err = streamWriter.Flush(); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, nil, "刷新失败")
+		return
+	}
+	ctx.Header("response-type", "blob")
+	data, _ := xlsx.WriteToBuffer()
+	ctx.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", data.Bytes())
+}

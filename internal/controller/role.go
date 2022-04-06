@@ -14,8 +14,8 @@ var roleServices = service.NewRoleService()
 
 type IRoleController interface {
 	List(ctx *gin.Context)
-	Create(ctx *gin.Context)
 	Retrieve(ctx *gin.Context)
+	Create(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	Destroy(ctx *gin.Context)
 }
@@ -36,6 +36,7 @@ func NewRoleController() IRoleController {
 func (r RoleController) List(ctx *gin.Context) {
 	pagination := form.Pagination{}
 	if err := ctx.ShouldBindQuery(&pagination); err != nil {
+		log.Println(err.Error())
 		util.Fail(ctx, nil, "参数错误")
 		return
 	}
@@ -54,31 +55,6 @@ func (r RoleController) List(ctx *gin.Context) {
 		"results": roles,
 		"total":   total,
 	}, "")
-}
-
-// Create
-// @Summary create role
-// @Accept application/json
-// @Produce application/json
-// @Security ApiKeyAuth
-// @Param role body req.RoleCreateReq true "角色信息"
-// @Success 200 {object} res.Result "成功后返回值"
-// @Router /api/role [post]
-func (r RoleController) Create(ctx *gin.Context) {
-	role := model.Role{}
-	if err := ctx.ShouldBindJSON(&role); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "参数错误")
-		return
-	}
-	//role := model.Role{}
-	//utils.Struct2StructByJson(createRoleValidate, role)
-	if err := roleServices.Create(&role); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "创建失败")
-		return
-	}
-	util.Success(ctx, gin.H{"role": role}, "创建成功")
 }
 
 // Retrieve
@@ -104,6 +80,31 @@ func (r RoleController) Retrieve(ctx *gin.Context) {
 		return
 	}
 	util.Success(ctx, gin.H{"role": role}, "获取角色信息成功")
+}
+
+// Create
+// @Summary create role
+// @Accept application/json
+// @Produce application/json
+// @Security ApiKeyAuth
+// @Param role body req.RoleCreateReq true "角色信息"
+// @Success 200 {object} res.Result "成功后返回值"
+// @Router /api/role [post]
+func (r RoleController) Create(ctx *gin.Context) {
+	role := model.Role{}
+	if err := ctx.ShouldBindJSON(&role); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "参数错误")
+		return
+	}
+	//role := model.Role{}
+	//utils.Struct2StructByJson(createRoleValidate, role)
+	if err := roleServices.Create(&role); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "创建失败")
+		return
+	}
+	util.Success(ctx, gin.H{}, "创建成功")
 }
 
 // Update

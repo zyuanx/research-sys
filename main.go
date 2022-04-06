@@ -19,5 +19,5 @@ import (
 // @name Authorization
 func main() {
 	r := internal.App()
-	panic(r.Run())
+	panic(r.Run("0.0.0.0:8000"))
 }

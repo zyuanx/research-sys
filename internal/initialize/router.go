@@ -26,26 +26,26 @@ func Router() *gin.Engine {
 	router.RegisterResearchRouter(apiGroup.Group("/research"))
 	router.RegisterRecordRouter(apiGroup.Group("/record"))
 
-	user := r.Group("/api/v1")
-	// use cabin middleware
-	user.Use(middleware.Privilege())
-	{
-		user.POST("user", func(c *gin.Context) {
-			c.JSON(200, gin.H{"code": 200, "message": "user add success"})
-		})
-		user.DELETE("user/:id", func(c *gin.Context) {
-			id := c.Param("id")
-			c.JSON(200, gin.H{"code": 200, "message": "user delete success " + id})
-		})
-		user.PUT("user/:id", func(c *gin.Context) {
-			id := c.Param("id")
-			c.JSON(200, gin.H{"code": 200, "message": "user update success " + id})
-		})
-		user.GET("user/:id", func(c *gin.Context) {
-			id := c.Param("id")
-			c.JSON(200, gin.H{"code": 200, "message": "user Get success " + id})
-		})
-	}
+	//user := r.Group("/api/v1")
+	//// use cabin middleware
+	//user.Use(middleware.Privilege())
+	//{
+	//	user.POST("user", func(c *gin.Context) {
+	//		c.JSON(200, gin.H{"code": 200, "message": "user add success"})
+	//	})
+	//	user.DELETE("user/:id", func(c *gin.Context) {
+	//		id := c.Param("id")
+	//		c.JSON(200, gin.H{"code": 200, "message": "user delete success " + id})
+	//	})
+	//	user.PUT("user/:id", func(c *gin.Context) {
+	//		id := c.Param("id")
+	//		c.JSON(200, gin.H{"code": 200, "message": "user update success " + id})
+	//	})
+	//	user.GET("user/:id", func(c *gin.Context) {
+	//		id := c.Param("id")
+	//		c.JSON(200, gin.H{"code": 200, "message": "user Get success " + id})
+	//	})
+	//}
 
 	return r
 }

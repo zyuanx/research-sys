@@ -4,12 +4,14 @@ import (
 	"errors"
 	"gin-research-sys/internal/form"
 	"gin-research-sys/internal/model"
+	"gin-research-sys/internal/request"
 	"gin-research-sys/internal/service"
 	"gin-research-sys/internal/util"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log"
+	"strconv"
 )
 
 type IRecordController interface {
@@ -26,13 +28,11 @@ func NewRecordController() IRecordController {
 
 var recordServices = service.NewRecordService()
 
-//var recordMgoServices = service.NewRecordMgoService()
-
 func (r RecordController) List(ctx *gin.Context) {
 	pagination := form.Pagination{}
 	if err := ctx.ShouldBindQuery(&pagination); err != nil {
 		log.Println(err.Error())
-		util.Success(ctx, nil, "query error")
+		util.Fail(ctx, nil, "参数错误")
 		return
 	}
 
@@ -151,4 +151,80 @@ func (r RecordController) Filled(ctx *gin.Context) {
 		return
 	}
 	util.Fail(ctx, gin.H{}, "already filled in")
+}
+
+type IOpenRecordController interface {
+	List(ctx *gin.Context)
+	Create(ctx *gin.Context)
+	Retrieve(ctx *gin.Context)
+}
+type OpenRecordController struct{}
+
+func NewOpenRecordController() IOpenRecordController {
+	return OpenRecordController{}
+}
+
+var openRecordService = service.OpenRecordService{}
+
+func (o OpenRecordController) List(ctx *gin.Context) {
+	listQuery := request.OpenRecordListQuery{}
+	if err := ctx.ShouldBindQuery(&listQuery); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, nil, "参数错误")
+		return
+	}
+
+	var records []model.OpenRecord
+	page, size := listQuery.Page, listQuery.Size
+	var total int64
+	query := make(map[string]interface{})
+	query["research_id"] = listQuery.ResearchID
+	if err := openRecordService.List(page, size, &records, &total, query); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, nil, "获取错误")
+		return
+	}
+	util.Success(ctx, gin.H{
+		"page":    page,
+		"size":    size,
+		"results": records,
+		"total":   total,
+	}, "")
+}
+func (o OpenRecordController) Create(ctx *gin.Context) {
+	createPayload := request.OpenRecordCreatePayload{}
+	var err error
+	if err = ctx.ShouldBindJSON(&createPayload); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "参数错误")
+		return
+	}
+	openRecord := model.OpenRecord{
+		ResearchID: createPayload.ResearchID,
+		IPAddress:  ctx.ClientIP(),
+		Values:     createPayload.Values,
+	}
+	if err = openRecordService.Create(&openRecord); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "创建失败")
+		return
+	}
+	util.Success(ctx, gin.H{}, "创建成功")
+
+}
+func (o OpenRecordController) Retrieve(ctx *gin.Context) {
+	var id int
+	var err error
+	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "ID错误")
+		return
+	}
+	openRecord := model.OpenRecord{}
+	if err = openRecordService.Retrieve(&openRecord, id); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "未找到记录")
+		return
+	}
+	util.Success(ctx, gin.H{"openRecord": openRecord}, "获取成功")
 }
