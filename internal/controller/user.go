@@ -191,7 +191,7 @@ func (u UserController) Update(ctx *gin.Context) {
 	user := model.User{}
 	if err = userServices.Retrieve(&user, id); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "未找到记录")
+		util.Fail(ctx, gin.H{}, "获取信息失败")
 		return
 	}
 	payload := map[string]interface{}{

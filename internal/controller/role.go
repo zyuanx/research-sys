@@ -134,7 +134,7 @@ func (r RoleController) Update(ctx *gin.Context) {
 	role := model.Role{}
 	if err = roleServices.Retrieve(&role, id); err != nil {
 		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "未找到记录")
+		util.Fail(ctx, gin.H{}, "获取记录失败")
 		return
 	}
 	payload := map[string]interface{}{

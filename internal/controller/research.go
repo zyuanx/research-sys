@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"gin-research-sys/internal/form"
 	"gin-research-sys/internal/model"
 	"gin-research-sys/internal/request"
@@ -253,7 +252,6 @@ func (r ResearchController) DownloadExcel(ctx *gin.Context) {
 	titles := []interface{}{"序号"}
 	var fieldIDs []string
 	for _, item := range items {
-		fmt.Println(item)
 		titles = append(titles, item["label"].(string))
 		fieldIDs = append(fieldIDs, item["fieldID"].(string))
 	}
