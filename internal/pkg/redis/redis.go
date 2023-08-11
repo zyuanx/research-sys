@@ -1,10 +1,11 @@
-package initialize
+package redis
 
 import (
 	"fmt"
-	"gin-research-sys/internal/conf"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
+	"github.com/zyuanx/research-sys/internal/pkg/global"
 )
 
 func Redis() {
@@ -18,5 +19,5 @@ func Redis() {
 		Password: password,
 		DB:       0,
 	})
-	conf.Redis = rdb
+	global.Redis = rdb
 }

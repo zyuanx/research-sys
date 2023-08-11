@@ -1,51 +1,36 @@
 package controller
 
 import (
-	"gin-research-sys/internal/form"
-	"gin-research-sys/internal/middleware"
-	"gin-research-sys/internal/model"
-	"gin-research-sys/internal/service"
 	"gin-research-sys/internal/util"
-	jwt "github.com/appleboy/gin-jwt/v2"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/form"
+	"github.com/zyuanx/research-sys/internal/model"
+	"github.com/zyuanx/research-sys/internal/pkg/constant"
+	"github.com/zyuanx/research-sys/internal/pkg/errors"
+	"github.com/zyuanx/research-sys/internal/pkg/errors/ecode"
+	"github.com/zyuanx/research-sys/internal/pkg/response"
+	"golang.org/x/crypto/bcrypt"
 )
 
-type IUserController interface {
-	GetInfo(ctx *gin.Context)
-	ChangePassword(ctx *gin.Context)
-
-	List(ctx *gin.Context)
-	Retrieve(ctx *gin.Context)
-	Create(ctx *gin.Context)
-	Update(ctx *gin.Context)
-	Destroy(ctx *gin.Context)
-}
-
-type UserController struct{}
-
-func NewUserController() IUserController {
-	return UserController{}
-}
-
-var userServices = service.NewUserService()
-
-func (u UserController) GetInfo(ctx *gin.Context) {
-	// 获取用户信息
-	claims := jwt.ExtractClaims(ctx)
-	id := int(claims["id"].(float64))
-	user := model.User{}
-	if err := userServices.Retrieve(&user, id); err != nil {
-		util.Fail(ctx, gin.H{}, "未找到记录")
+func (c *Controller) UserGetInfo(ctx *gin.Context) {
+	id, exist := ctx.Get(constant.UserID)
+	if !exist {
+		var err error
+		response.JSON(ctx, errors.Wrap(err, ecode.AuthTokenErr, "未登录"), nil)
 		return
 	}
-	util.Success(ctx, gin.H{"user": user}, "获取用户信息成功")
+	user := model.User{}
+	if err := c.service.UserRetrieve(&user, id.(int)); err != nil {
+		response.JSON(ctx, errors.Wrap(err, ecode.NotFoundErr, "未找到记录"), nil)
+		return
+	}
+	response.JSON(ctx, nil, user)
 }
 
-func (u UserController) ChangePassword(ctx *gin.Context) {
-	// 用户修改密码
+func (c *Controller) UserChangePassword(ctx *gin.Context) {
 	passwordForm := form.UserChangePasswordForm{}
 	var err error
 	if err = ctx.ShouldBindJSON(&passwordForm); err != nil {
@@ -59,7 +44,7 @@ func (u UserController) ChangePassword(ctx *gin.Context) {
 	}
 	user := model.User{}
 	instance := middleware.JWTAuthMiddleware.IdentityHandler(ctx).(*model.User)
-	if err = userServices.Retrieve(&user, int(instance.ID)); err != nil {
+	if err = c.service.UserRetrieve(&user, int(instance.ID)); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
@@ -78,7 +63,7 @@ func (u UserController) ChangePassword(ctx *gin.Context) {
 		"password": string(hashedPassword),
 	}
 	user.Password = string(hashedPassword)
-	if err = userServices.Update(&user, payload); err != nil {
+	if err = c.service.UserUpdate(&user, payload); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "修改密码错误")
 		return
@@ -86,7 +71,7 @@ func (u UserController) ChangePassword(ctx *gin.Context) {
 	util.Success(ctx, gin.H{}, "修改密码成功")
 }
 
-func (u UserController) List(ctx *gin.Context) {
+func (c *Controller) UserList(ctx *gin.Context) {
 	userListQuery := form.UserListQuery{}
 	if err := ctx.ShouldBindQuery(&userListQuery); err != nil {
 		log.Println(err.Error())
@@ -103,9 +88,9 @@ func (u UserController) List(ctx *gin.Context) {
 	if userListQuery.Name != "" {
 		query["name"] = userListQuery.Name
 	}
-	if err := userServices.List(&users, page, size, &total, query); err != nil {
+	if err := c.service.UserList(&users, page, size, &total, query); err != nil {
 		log.Println(err.Error())
-		util.Success(ctx, nil, "获取数据失败")
+		util.Fail(ctx, nil, "获取数据失败")
 		return
 	}
 	util.Success(ctx, gin.H{
@@ -116,7 +101,7 @@ func (u UserController) List(ctx *gin.Context) {
 	}, "")
 }
 
-func (u UserController) Retrieve(ctx *gin.Context) {
+func (c *Controller) UserRetrieve(ctx *gin.Context) {
 	var id int
 	var err error
 	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
@@ -125,7 +110,7 @@ func (u UserController) Retrieve(ctx *gin.Context) {
 		return
 	}
 	user := model.User{}
-	if err = userServices.Retrieve(&user, id); err != nil {
+	if err = c.service.UserRetrieve(&user, id); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "未找到记录")
 		return
@@ -134,7 +119,7 @@ func (u UserController) Retrieve(ctx *gin.Context) {
 	util.Success(ctx, gin.H{"user": user}, "获取用户信息成功")
 }
 
-func (u UserController) Create(ctx *gin.Context) {
+func (c *Controller) UserCreate(ctx *gin.Context) {
 	createForm := form.UserCreateForm{}
 	var err error
 	if err = ctx.ShouldBindJSON(&createForm); err != nil {
@@ -159,7 +144,7 @@ func (u UserController) Create(ctx *gin.Context) {
 		Telephone: createForm.Telephone,
 		Email:     createForm.Email,
 	}
-	if err = userServices.Create(&user); err != nil {
+	if err = c.service.UserCreate(&user); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "创建用户失败")
 		return
@@ -173,7 +158,7 @@ func (u UserController) Create(ctx *gin.Context) {
 	util.Success(ctx, gin.H{}, "创建用户成功")
 }
 
-func (u UserController) Update(ctx *gin.Context) {
+func (c *Controller) UserUpdate(ctx *gin.Context) {
 	var id int
 	var err error
 	id, err = strconv.Atoi(ctx.Param("id"))
@@ -189,7 +174,7 @@ func (u UserController) Update(ctx *gin.Context) {
 		return
 	}
 	user := model.User{}
-	if err = userServices.Retrieve(&user, id); err != nil {
+	if err = c.service.UserRetrieve(&user, id); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "获取信息失败")
 		return
@@ -200,12 +185,12 @@ func (u UserController) Update(ctx *gin.Context) {
 		"email":     updateForm.Email,
 		//"roles":     updateForm.Roles,
 	}
-	if err = userServices.Update(&user, payload); err != nil {
+	if err = c.service.UserUpdate(&user, payload); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "更新用户失败")
 		return
 	}
-	if err = userServices.UpdateRole(&user, updateForm.Roles); err != nil {
+	if err = c.service.UserUpdateRole(&user, updateForm.Roles); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "更新用户失败")
 		return
@@ -213,14 +198,14 @@ func (u UserController) Update(ctx *gin.Context) {
 	util.Success(ctx, gin.H{}, "更新成功")
 }
 
-func (u UserController) Destroy(ctx *gin.Context) {
+func (c *Controller) UserDestroy(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "参数错误")
 		return
 	}
-	if err = userServices.Destroy(id); err != nil {
+	if err = c.service.UserDestroy(id); err != nil {
 		log.Println(err.Error())
 		util.Fail(ctx, gin.H{}, "删除用户失败")
 		return

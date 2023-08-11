@@ -1,62 +1,72 @@
 package service
 
 import (
-	"gin-research-sys/internal/conf"
-	"gin-research-sys/internal/model"
-	"gin-research-sys/internal/util"
+	"errors"
+
+	"github.com/zyuanx/research-sys/internal/model"
+	"github.com/zyuanx/research-sys/internal/pkg/pagination"
+	"gorm.io/gorm"
 )
 
-type RecordService struct{}
-
-func NewRecordService() IRecordService {
-	return RecordService{}
-}
-
-type IRecordService interface {
-	List(page int, size int, records *[]model.Record, total *int64, query map[string]interface{}) error
-	Retrieve(record *model.Record, id int) error
-	Create(record *model.Record) error
-
-	FindByResearchID(records *model.Record, researchId string, id int) error
-	ListID(id string, records *[]model.Record, total *int64) error
-}
-
-func (r RecordService) List(page int, size int, records *[]model.Record, total *int64, query map[string]interface{}) error {
-	if err := conf.Mysql.Model(&model.Record{}).
+func (s *Service) ListRecord(page int, size int, records *[]model.Record, total *int64, query map[string]interface{}) error {
+	if err := s.db.Model(&model.Record{}).
 		Where(query).
 		Count(total).
-		Scopes(util.Paginate(page, size)).
+		Scopes(pagination.Paginate(page, size)).
 		Find(&records).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r RecordService) Retrieve(record *model.Record, id int) error {
-	if err := conf.Mysql.Model(&model.Record{}).First(&record, id).Error; err != nil {
+func (s *Service) RetrieveRecord(record *model.Record, id int) error {
+	if err := s.db.Model(&model.Record{}).First(&record, id).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r RecordService) Create(record *model.Record) error {
-	if err := conf.Mysql.Model(&model.Record{}).Create(&record).Error; err != nil {
+func (s *Service) CreateRecord(record *model.Record, research *model.Research) error {
+	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	rec := model.Record{}
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").
+		Where("research_id = ?", research.ID).
+		Where("user_id = ?", record.UserID).
+		First(&rec).Error; err != nil {
+		// 如果不是没有找到记录，则返回错误
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			tx.Rollback()
+			return err
+		}
+	}
+	// 此时指定 id 的记录被锁住。如果表中无符合记录的数据，则排他锁不生效
+	// 执行其他数据库操作
+	if err := tx.Create(&record).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 	return nil
 }
 
-func (r RecordService) FindByResearchID(records *model.Record, researchId string, id int) error {
-	if err := conf.Mysql.Model(&model.Record{}).
-		Where("research_id = ?", researchId).
+func (s *Service) FindByResearchID(record *model.Record, researchId string, id int) error {
+	if err := s.db.Where("research_id = ?", researchId).
 		Where("user_id = ?", id).
-		First(&records).Error; err != nil {
+		First(&record).Error; err != nil {
 		return err
 	}
 	return nil
 }
-func (r RecordService) ListID(id string, records *[]model.Record, total *int64) error {
-	if err := conf.Mysql.Model(&model.Record{}).
+func (s *Service) ListID(id string, records *[]model.Record, total *int64) error {
+	if err := s.db.Model(&model.Record{}).
 		Count(total).
 		Preload("User").
 		Where("research_id = ?", id).
@@ -66,47 +76,34 @@ func (r RecordService) ListID(id string, records *[]model.Record, total *int64) 
 	return nil
 }
 
-type OpenRecordService struct{}
-
-func NewOpenRecordService() IOpenRecordService {
-	return OpenRecordService{}
-}
-
-type IOpenRecordService interface {
-	List(page int, size int, records *[]model.OpenRecord, total *int64, query map[string]interface{}) error
-	Retrieve(record *model.OpenRecord, id int) error
-	Create(record *model.OpenRecord) error
-	ListByResearchID(records *[]model.OpenRecord, researchID uint) error
-}
-
-func (o OpenRecordService) List(page int, size int, records *[]model.OpenRecord,
+func (s *Service) ListOpenRecord(page int, size int, records *[]model.OpenRecord,
 	total *int64, query map[string]interface{}) error {
-	if err := conf.Mysql.Model(&model.OpenRecord{}).
+	if err := s.db.Model(&model.OpenRecord{}).
 		Where(query).
 		Count(total).
-		Scopes(util.Paginate(page, size)).
+		Scopes(pagination.Paginate(page, size)).
 		Find(&records).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o OpenRecordService) Retrieve(record *model.OpenRecord, id int) error {
-	if err := conf.Mysql.Model(&model.OpenRecord{}).First(&record, id).Error; err != nil {
+func (s *Service) RetrieveOpenRecord(record *model.OpenRecord, id int) error {
+	if err := s.db.Model(&model.OpenRecord{}).First(&record, id).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o OpenRecordService) Create(record *model.OpenRecord) error {
-	if err := conf.Mysql.Model(&model.OpenRecord{}).Create(&record).Error; err != nil {
+func (s *Service) CreateOpenRecord(record *model.OpenRecord) error {
+	if err := s.db.Model(&model.OpenRecord{}).Create(&record).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o OpenRecordService) ListByResearchID(records *[]model.OpenRecord, researchID uint) error {
-	if err := conf.Mysql.Model(&model.OpenRecord{}).
+func (s *Service) ListOpenRecordByResearchID(records *[]model.OpenRecord, researchID uint) error {
+	if err := s.db.Model(&model.OpenRecord{}).
 		Where("research_id = ?", researchID).
 		Find(&records).Error; err != nil {
 		return err

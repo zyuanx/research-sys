@@ -2,16 +2,19 @@ package controller
 
 import (
 	"errors"
-	"gin-research-sys/internal/form"
-	"gin-research-sys/internal/model"
-	"gin-research-sys/internal/request"
-	"gin-research-sys/internal/service"
 	"gin-research-sys/internal/util"
-	jwt "github.com/appleboy/gin-jwt/v2"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+
 	"log"
 	"strconv"
+	"time"
+
+	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/form"
+	"github.com/zyuanx/research-sys/internal/model"
+	"github.com/zyuanx/research-sys/internal/request"
+	"github.com/zyuanx/research-sys/internal/service"
+	"gorm.io/gorm"
 )
 
 type IRecordController interface {
@@ -60,78 +63,65 @@ func (r RecordController) List(ctx *gin.Context) {
 }
 
 func (r RecordController) Retrieve(ctx *gin.Context) {
-	//idString := ctx.Param("id")
-	//id, err := strconv.Atoi(idString)
-	//if err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "param is error")
-	//	return
-	//}
-	//record := model.Record{}
-	//if err = recordServices.Retrieve(&record, id); err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "retrieve fail")
-	//	return
-	//}
-	//recordMgo := model.RecordMgo{}
-	//if err = recordMgoServices.Retrieve(&recordMgo, record.RecordID); err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "retrieve fail")
-	//	return
-	//}
-	//
-	//util.Success(ctx, gin.H{"record": gin.H{
-	//	"id":          record.ID,
-	//	"title":       record.Title,
-	//	"recordID":    record.RecordID,
-	//	"fieldsValue": recordMgo.FieldsValue,
-	//}}, "")
+	idString := ctx.Param("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "参数错误")
+		return
+	}
+	record := model.Record{}
+	if err = recordServices.Retrieve(&record, id); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "获取记录失败")
+		return
+	}
+
+	util.Success(ctx, gin.H{"record": record}, "获取成功")
 }
 
 func (r RecordController) Create(ctx *gin.Context) {
-	//createForm := form.RecordCreateForm{}
-	//if err := ctx.ShouldBindJSON(&createForm); err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "payload error")
-	//	return
-	//}
-	//// there needs mongo transaction
-	//recordMgo := model.RecordMgo{
-	//	FieldsValue: createForm.FieldsValue,
-	//}
-	//result, err := recordMgoServices.Create(&recordMgo)
-	//if err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "create error")
-	//	return
-	//}
-	//claims := jwt.ExtractClaims(ctx)
-	//id := int(claims["id"].(float64))
-	//user := model.User{}
-	//if err = userServices.Retrieve(&user, id); err != nil {
-	//	util.Fail(ctx, gin.H{}, "record not found")
-	//	return
-	//}
-	//
-	//record := model.Record{
-	//	Title:      createForm.Title,
-	//	ResearchID: createForm.ResearchID,
-	//	IP:         ctx.ClientIP(),
-	//	UserID:     int(user.ID),
-	//}
-	//if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
-	//	record.RecordID = oid.Hex()
-	//} else {
-	//	log.Println(ok)
-	//	util.Fail(ctx, gin.H{}, "create fail")
-	//	return
-	//}
-	//if err = recordServices.Create(&record); err != nil {
-	//	log.Println(err.Error())
-	//	util.Fail(ctx, gin.H{}, "create fail")
-	//	return
-	//}
-	//util.Success(ctx, gin.H{}, "create success")
+	createPayload := request.RecordCreatePayload{}
+	if err := ctx.ShouldBindJSON(&createPayload); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "参数错误")
+		return
+	}
+
+	// 获取用户信息
+	claims := jwt.ExtractClaims(ctx)
+	userID := int(claims["id"].(float64))
+
+	// 获取问卷信息
+	research := model.Research{}
+	if err := researchServices.Retrieve(&research, createPayload.ResearchID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			util.Fail(ctx, gin.H{}, "未找到记录")
+			return
+		}
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "获取数据失败")
+		return
+	}
+	// 检查是否在时间范围内
+	now := time.Now()
+	if now.Before(research.StartAt) || now.After(research.EndAt) {
+		util.Fail(ctx, gin.H{}, "不在时间范围内")
+		return
+	}
+
+	record := model.Record{
+		ResearchID: createPayload.ResearchID,
+		Values:     createPayload.Values,
+		IPAddress:  ctx.ClientIP(),
+		UserID:     userID,
+	}
+	if err := recordServices.Create(&record, &research); err != nil {
+		log.Println(err.Error())
+		util.Fail(ctx, gin.H{}, "创建失败")
+		return
+	}
+	util.Success(ctx, gin.H{}, "创建成功")
 }
 
 func (r RecordController) Filled(ctx *gin.Context) {

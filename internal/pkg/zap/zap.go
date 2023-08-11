@@ -1,12 +1,13 @@
-package initialize
+package zap
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"os"
-	"time"
 )
 
 const (
@@ -68,9 +69,9 @@ func SetLogs(logLevel zapcore.Level, logFormat string) {
 	}
 
 	core := zapcore.NewCore(
-		encoder,                                                                         // 编码器配置
+		encoder, // 编码器配置
 		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stderr), zapcore.AddSync(&hook)), // 打印到控制台和文件
-		zap.NewAtomicLevelAt(logLevel),                                                  // 日志级别
+		zap.NewAtomicLevelAt(logLevel), // 日志级别
 	)
 
 	// 开启文件及行号

@@ -9,12 +9,6 @@ mysql:
   charset: utf8mb4
   parseTime: True
   loc: Local
-mongodb:
-  username: admin
-  password: 123456
-  host: 127.0.0.1
-  port: 27017
-  authSource: admin
 redis:
   password: 123456
   host: 127.0.0.1

@@ -7,7 +7,8 @@ type Record struct {
 	IPAddress  string   `gorm:"size:64;comment:填写IP" json:"IPAddress"`
 	Status     int      `gorm:"default:0;comment:审核状态" json:"status"`
 	Values     string   `gorm:"type:text;comment:填写者ID" json:"values"`
-	WriterInfo string   `gorm:"type:text;comment:填写者用户信息" json:"-"`
+	UserID     int      `gorm:"comment:填写者ID" json:"userID"`
+	User       User     `gorm:"foreignKey:UserID" json:"user"`
 }
 
 type OpenRecord struct {

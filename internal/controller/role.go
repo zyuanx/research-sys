@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"gin-research-sys/internal/form"
-	"gin-research-sys/internal/model"
-	"gin-research-sys/internal/service"
 	"gin-research-sys/internal/util"
-	"github.com/gin-gonic/gin"
 	"log"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/form"
+	"github.com/zyuanx/research-sys/internal/model"
+	"github.com/zyuanx/research-sys/internal/service"
 )
 
 var roleServices = service.NewRoleService()

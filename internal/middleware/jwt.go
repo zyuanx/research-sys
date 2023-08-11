@@ -1,102 +1,49 @@
 package middleware
 
 import (
-	"errors"
-	"gin-research-sys/internal/model"
-	"gin-research-sys/internal/service"
-	"golang.org/x/crypto/bcrypt"
-	"log"
-	"net/http"
-	"time"
+	"fmt"
+	"strings"
 
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/pkg/config"
+	"github.com/zyuanx/research-sys/internal/pkg/constant"
+	"github.com/zyuanx/research-sys/internal/pkg/errors"
+	"github.com/zyuanx/research-sys/internal/pkg/errors/ecode"
+	"github.com/zyuanx/research-sys/internal/pkg/jwt"
+	"github.com/zyuanx/research-sys/internal/pkg/response"
 )
 
-type LoginReq struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+const authorizationHeader = "Authorization"
+
+// AuthToken 鉴权，验证用户token是否有效
+func AuthToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token, err := getJwtFromHeader(c)
+		if err != nil {
+			response.JSON(c, errors.Wrap(err, ecode.RequireAuthErr, "invalid token"), nil)
+			c.Abort()
+			return
+		}
+		// 验证token是否正确
+		claims, err := jwt.ParseToken(token, config.GlobalConfig.JwtSecret)
+		if err != nil {
+			response.JSON(c, errors.Wrap(err, ecode.RequireAuthErr, "invalid token"), nil)
+			c.Abort()
+			return
+		}
+		c.Set(constant.UserID, claims.UserId)
+		c.Next()
+	}
 }
 
-var identityKey = "id"
-var JWTAuthMiddleware *jwt.GinJWTMiddleware
-
-func init() {
-	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Realm:       "research",
-		Key:         []byte("QhYTOVSfGa0xFE4sctH6lj7UuZRiq5m2"),
-		Timeout:     time.Hour * 24,
-		MaxRefresh:  time.Hour * 24,
-		IdentityKey: identityKey,
-		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*model.User); ok {
-				return jwt.MapClaims{
-					"username":  v.Username,
-					identityKey: v.ID,
-				}
-			}
-			return jwt.MapClaims{}
-		},
-		IdentityHandler: func(c *gin.Context) interface{} {
-			claims := jwt.ExtractClaims(c)
-			return &model.User{
-				Username: claims["username"].(string),
-				BaseModel: model.BaseModel{
-					ID: uint(claims[identityKey].(float64)),
-				},
-			}
-		},
-		Authenticator: func(c *gin.Context) (interface{}, error) {
-			login := LoginReq{}
-			if err := c.ShouldBindJSON(&login); err != nil {
-				return nil, errors.New("payload is error")
-			}
-			user := model.User{}
-			userService := service.NewUserService()
-			if err := userService.FindByUsername(&user, login.Username); err != nil {
-				return nil, err
-			}
-			err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password))
-			if err != nil {
-				return nil, jwt.ErrFailedAuthentication
-			}
-			return &user, nil
-		},
-		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if _, ok := data.(*model.User); ok {
-				return true
-			}
-			return false
-		},
-		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.JSON(http.StatusOK, gin.H{
-				"code":    code,
-				"message": message,
-			})
-		},
-		LoginResponse: func(c *gin.Context, code int, token string, expire time.Time) {
-			c.JSON(http.StatusOK, gin.H{
-				"code": http.StatusOK,
-				"data": gin.H{
-					"token":  token,
-					"expire": expire.Format(time.RFC3339),
-				},
-			})
-		},
-		RefreshResponse: func(c *gin.Context, code int, token string, expire time.Time) {
-			c.JSON(http.StatusOK, gin.H{
-				"code": http.StatusOK,
-				"data": gin.H{
-					"token":  token,
-					"expire": expire.Format(time.RFC3339),
-				},
-			})
-		},
-		TokenLookup: "header: Authorization, query: token, cookie: jwt",
-	})
-	if err != nil {
-		log.Fatal("JWT Error:" + err.Error())
+func getJwtFromHeader(c *gin.Context) (string, error) {
+	aHeader := c.Request.Header.Get(authorizationHeader)
+	if len(aHeader) == 0 {
+		return "", fmt.Errorf("token is empty")
 	}
-
-	JWTAuthMiddleware = authMiddleware
+	strList := strings.SplitN(aHeader, " ", 2)
+	if len(strList) != 2 || strList[0] != "Bearer" {
+		return "", fmt.Errorf("token 不符合规则")
+	}
+	return strList[1], nil
 }

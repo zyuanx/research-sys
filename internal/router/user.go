@@ -1,9 +1,9 @@
 package router
 
 import (
-	"gin-research-sys/internal/controller"
-	"gin-research-sys/internal/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/controller"
+	"github.com/zyuanx/research-sys/internal/middleware"
 )
 
 func RegisterUserRouter(r *gin.RouterGroup) {
@@ -12,7 +12,7 @@ func RegisterUserRouter(r *gin.RouterGroup) {
 	r.POST("/login", middleware.JWTAuthMiddleware.LoginHandler)
 
 	group := r.Group("")
-	group.Use(middleware.JWTAuthMiddleware.MiddlewareFunc())
+	group.Use(middleware.AuthToken())
 	{
 		group.POST("/logout", middleware.JWTAuthMiddleware.LogoutHandler)
 		group.GET("/refresh_token", middleware.JWTAuthMiddleware.RefreshHandler)

@@ -2,18 +2,20 @@ package controller
 
 import (
 	"encoding/json"
-	"gin-research-sys/internal/form"
-	"gin-research-sys/internal/model"
-	"gin-research-sys/internal/request"
-	"gin-research-sys/internal/response"
-	"gin-research-sys/internal/service"
 	"gin-research-sys/internal/util"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
-	jwt "github.com/appleboy/gin-jwt/v2"
-	"github.com/gin-gonic/gin"
+
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/form"
+	"github.com/zyuanx/research-sys/internal/model"
+	"github.com/zyuanx/research-sys/internal/request"
+	"github.com/zyuanx/research-sys/internal/response"
+	"github.com/zyuanx/research-sys/internal/service"
 )
 
 type IResearchController interface {
