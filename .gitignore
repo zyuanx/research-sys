@@ -1,32 +1,42 @@
+# General
 .DS_Store
-node_modules
-/dist
+.AppleDouble
+.LSOverride
 
-#virtualenv
-venv
-
-# local env files
-.env.local
-.env.*.local
-
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Editor directories and files
-.idea
-.vscode
-__pycache__
-*.pyc
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Icon must end with two \r
+Icon
 
 
-/config/application-pro.yml
-/logs/nginx/*.log
-/logs/zap/*.log
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+/tmp

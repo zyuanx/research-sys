@@ -8,7 +8,7 @@ import (
 func (s *Service) UserFindByUsername(user *model.User, username string) error {
 	if err := s.db.Model(&model.User{}).
 		Where("username = ?", username).
-		First(&user).Error; err != nil {
+		Find(&user).Error; err != nil {
 		return err
 	}
 	return nil
