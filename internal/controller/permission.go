@@ -1,57 +1,60 @@
 package controller
 
 import (
-	"gin-research-sys/internal/util"
-	"log"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zyuanx/research-sys/internal/form"
 	"github.com/zyuanx/research-sys/internal/model"
+	"github.com/zyuanx/research-sys/internal/pkg/errors"
+	"github.com/zyuanx/research-sys/internal/pkg/errors/ecode"
+	"github.com/zyuanx/research-sys/internal/pkg/response"
 )
 
-func (c *Controller) List(ctx *gin.Context) {
+func (c *Controller) PermissionList(ctx *gin.Context) {
 	pagination := form.Pagination{}
 	if err := ctx.ShouldBindQuery(&pagination); err != nil {
-		util.Fail(ctx, nil, err.Error())
+		err = errors.Wrap(err, ecode.ValidateErr, "bind query error")
+		response.JSON(ctx, err, nil)
 		return
 	}
 	var permissions []model.Permission
 	var total int64
-	if err := c.service.ListPermission(pagination.Page, pagination.Size, &permissions, &total); err != nil {
-		util.Success(ctx, nil, err.Error())
+	if err := c.service.PermissionList(pagination.Page, pagination.Size, &permissions, &total); err != nil {
+		err = errors.Wrap(err, ecode.RecordListErr, "list error")
+		response.JSON(ctx, err, nil)
 		return
 	}
-	util.Success(ctx, gin.H{
+	response.JSON(ctx, nil, gin.H{
 		"page":    pagination.Page,
 		"size":    pagination.Size,
 		"results": permissions,
 		"total":   total,
-	}, "")
+	})
 }
 
-func (c *Controller) Retrieve(ctx *gin.Context) {
+func (c *Controller) PermissionRetrieve(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param is error")
+		err = errors.Wrap(err, ecode.ValidateErr, "param is error")
+		response.JSON(ctx, err, nil)
 		return
 	}
 	permission := model.Permission{}
-	if err = permissionServices.Retrieve(&permission, id); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "retrieve fail")
+	if err = c.service.PermissionRetrieve(&permission, id); err != nil {
+		err = errors.Wrap(err, ecode.RecordRetrieveErr, "retrieve error")
+		response.JSON(ctx, err, nil)
 		return
 	}
-	util.Success(ctx, gin.H{"permission": permission}, "retrieve success")
+	response.JSON(ctx, nil, permission)
 }
 
-func (c *Controller) Create(ctx *gin.Context) {
+func (c *Controller) PermissionCreate(ctx *gin.Context) {
 	createForm := form.PermissionCreateForm{}
 	if err := ctx.ShouldBindJSON(&createForm); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "payload is error")
+		err = errors.Wrap(err, ecode.ValidateErr, "payload is error")
+		response.JSON(ctx, err, nil)
 		return
 	}
 	permission := model.Permission{
@@ -62,20 +65,20 @@ func (c *Controller) Create(ctx *gin.Context) {
 		Index:  createForm.Index,
 	}
 
-	if err := permissionServices.Create(&permission); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "create fail")
+	if err := c.service.PermissionCreate(&permission); err != nil {
+		err = errors.Wrap(err, ecode.RecordCreateErr, "create error")
+		response.JSON(ctx, err, nil)
 		return
 	}
-	util.Success(ctx, gin.H{}, "create success")
+	response.JSON(ctx, nil, permission)
 }
-func (c *Controller) Update(ctx *gin.Context) {
+func (c *Controller) PermissionUpdate(ctx *gin.Context) {
 
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param is error")
+		err = errors.Wrap(err, ecode.ValidateErr, "param is error")
+		response.JSON(ctx, err, nil)
 		return
 	}
 	//updateForm := form.PermissionUpdateForm{}
@@ -85,36 +88,36 @@ func (c *Controller) Update(ctx *gin.Context) {
 	//	return
 	//}
 	permission := model.Permission{}
-	if err = permissionServices.Retrieve(&permission, id); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "retrieve fail")
+	if err = c.service.PermissionRetrieve(&permission, id); err != nil {
+		err = errors.Wrap(err, ecode.RecordRetrieveErr, "retrieve error")
+		response.JSON(ctx, err, nil)
 		return
 	}
 	if err = ctx.ShouldBindJSON(&permission); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "payload is error")
+		err = errors.Wrap(err, ecode.ValidateErr, "payload is error")
+		response.JSON(ctx, err, nil)
 		return
 	}
-	if err = permissionServices.Update(&permission); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "update fail")
+	if err = c.service.PermissionUpdate(&permission); err != nil {
+		err = errors.Wrap(err, ecode.RecordUpdateErr, "update error")
+		response.JSON(ctx, err, nil)
 		return
 	}
-	util.Success(ctx, gin.H{}, "update success")
+	response.JSON(ctx, nil, permission)
 }
 
-func (c *Controller) Destroy(ctx *gin.Context) {
+func (c *Controller) PermissionDelete(ctx *gin.Context) {
 	idString := ctx.Param("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "param is error")
+		err = errors.Wrap(err, ecode.ValidateErr, "param is error")
+		response.JSON(ctx, err, nil)
 		return
 	}
-	if err = permissionServices.Destroy(id); err != nil {
-		log.Println(err.Error())
-		util.Fail(ctx, gin.H{}, "delete fail")
+	if err = c.service.PermissionDestroy(id); err != nil {
+		err = errors.Wrap(err, ecode.RecordDeleteErr, "delete error")
+		response.JSON(ctx, err, nil)
 		return
 	}
-	util.Success(ctx, gin.H{}, "delete success")
+	response.JSON(ctx, nil, nil)
 }

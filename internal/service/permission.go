@@ -6,7 +6,7 @@ import (
 	"github.com/zyuanx/research-sys/internal/pkg/pagination"
 )
 
-func (s *Service) ListPermission(page int, size int, permissions *[]model.Permission, total *int64) error {
+func (s *Service) PermissionList(page int, size int, permissions *[]model.Permission, total *int64) error {
 	if err := s.db.Model(&model.Permission{}).Count(total).
 		Scopes(pagination.Paginate(page, size)).
 		Order("`permissions`.`group`").Order("`permissions`.`index`").
@@ -16,28 +16,28 @@ func (s *Service) ListPermission(page int, size int, permissions *[]model.Permis
 	return nil
 }
 
-func (s *Service) RetrievePermission(permission *model.Permission, id int) error {
+func (s *Service) PermissionRetrieve(permission *model.Permission, id int) error {
 	if err := s.db.Model(&model.Permission{}).First(&permission, id).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) CreatePermission(permission *model.Permission) error {
+func (s *Service) PermissionCreate(permission *model.Permission) error {
 	if err := s.db.Model(&model.Permission{}).Create(&permission).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) UpdatePermission(permission *model.Permission) error {
+func (s *Service) PermissionUpdate(permission *model.Permission) error {
 	if err := s.db.Save(&permission).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) DestroyPermission(id int) error {
+func (s *Service) PermissionDestroy(id int) error {
 	if err := s.db.Delete(&model.Permission{}, id).Error; err != nil {
 		return err
 	}

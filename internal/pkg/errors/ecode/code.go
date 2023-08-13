@@ -38,6 +38,11 @@ const (
 
 	// RecordCreateErr 创建记录，数据持久化失败
 	RecordCreateErr
+
+	RecordListErr
+	RecordRetrieveErr
+	RecordUpdateErr
+	RecordDeleteErr
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (s *Service) ListRecord(page int, size int, records *[]model.Record, total *int64, query map[string]interface{}) error {
+func (s *Service) RecordList(page int, size int, records *[]model.Record, total *int64, query map[string]interface{}) error {
 	if err := s.db.Model(&model.Record{}).
 		Where(query).
 		Count(total).
@@ -19,14 +19,14 @@ func (s *Service) ListRecord(page int, size int, records *[]model.Record, total 
 	return nil
 }
 
-func (s *Service) RetrieveRecord(record *model.Record, id int) error {
+func (s *Service) RecordRetrieve(record *model.Record, id int) error {
 	if err := s.db.Model(&model.Record{}).First(&record, id).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) CreateRecord(record *model.Record, research *model.Research) error {
+func (s *Service) RecordCreate(record *model.Record, research *model.Research) error {
 	tx := s.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -57,7 +57,7 @@ func (s *Service) CreateRecord(record *model.Record, research *model.Research) e
 	return nil
 }
 
-func (s *Service) FindByResearchID(record *model.Record, researchId string, id int) error {
+func (s *Service) RecordFindByResearchID(record *model.Record, researchId string, id int) error {
 	if err := s.db.Where("research_id = ?", researchId).
 		Where("user_id = ?", id).
 		First(&record).Error; err != nil {
@@ -65,46 +65,11 @@ func (s *Service) FindByResearchID(record *model.Record, researchId string, id i
 	}
 	return nil
 }
-func (s *Service) ListID(id string, records *[]model.Record, total *int64) error {
+func (s *Service) RecordListID(id string, records *[]model.Record, total *int64) error {
 	if err := s.db.Model(&model.Record{}).
 		Count(total).
 		Preload("User").
 		Where("research_id = ?", id).
-		Find(&records).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) ListOpenRecord(page int, size int, records *[]model.OpenRecord,
-	total *int64, query map[string]interface{}) error {
-	if err := s.db.Model(&model.OpenRecord{}).
-		Where(query).
-		Count(total).
-		Scopes(pagination.Paginate(page, size)).
-		Find(&records).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) RetrieveOpenRecord(record *model.OpenRecord, id int) error {
-	if err := s.db.Model(&model.OpenRecord{}).First(&record, id).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) CreateOpenRecord(record *model.OpenRecord) error {
-	if err := s.db.Model(&model.OpenRecord{}).Create(&record).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) ListOpenRecordByResearchID(records *[]model.OpenRecord, researchID uint) error {
-	if err := s.db.Model(&model.OpenRecord{}).
-		Where("research_id = ?", researchID).
 		Find(&records).Error; err != nil {
 		return err
 	}

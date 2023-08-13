@@ -1,11 +1,12 @@
 server:
   port: 8080
+jwt-secret: FU&3$#gy5ZAZ5rgQ5g8MT3SD&M63%YwY
 mysql:
   username: root
   password: 123456
   host: 127.0.0.1
   port: 3306
-  database: research_dev
+  database: research_sys
   charset: utf8mb4
   parseTime: True
   loc: Local

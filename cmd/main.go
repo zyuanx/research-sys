@@ -38,7 +38,7 @@ func main() {
 	// initialize.CreateAdmin()
 	s := service.NewService(global.MySQL)
 	controller.NewController(s)
-	router.SetupRouter(r)
+	router.SetupRouter(r, s)
 
 	r.Run(fmt.Sprintf("0.0.0.0:%d", c.Server.Port))
 }

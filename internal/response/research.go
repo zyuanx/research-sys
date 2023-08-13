@@ -1,4 +1,4 @@
-package response
+package response11
 
 type ResearchResponse struct {
 	BaseModel

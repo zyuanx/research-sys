@@ -4,10 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/controller"
 	"github.com/zyuanx/research-sys/internal/middleware"
+	"github.com/zyuanx/research-sys/internal/service"
 )
 
-func SetupRouter(r *gin.Engine) *gin.Engine {
+func SetupRouter(r *gin.Engine, s *service.Service) *gin.Engine {
 
 	r.Use(middleware.CORS())
 	// r.Use(middleware.RequestId())
@@ -16,12 +18,12 @@ func SetupRouter(r *gin.Engine) *gin.Engine {
 			"message": "pong",
 		})
 	})
-
+	controller := controller.NewController(s)
 	apiGroup := r.Group("/api")
-	RegisterUserRouter(apiGroup.Group("/user"))
-	RegisterRoleRouter(apiGroup.Group("/role"))
-	RegisterPermissionRouter(apiGroup.Group("/permission"))
-	RegisterResearchRouter(apiGroup.Group("/research"))
-	RegisterRecordRouter(apiGroup.Group("/record"))
+	RegisterUserRouter(controller, apiGroup.Group("/user"))
+	// RegisterRoleRouter(controller, apiGroup.Group("/role"))
+	// RegisterPermissionRouter(controller, apiGroup.Group("/permission"))
+	// RegisterResearchRouter(controller, controllerapiGroup.Group("/research"))
+	// RegisterRecordRouter(controller, apiGroup.Group("/record"))
 	return r
 }

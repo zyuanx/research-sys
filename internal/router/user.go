@@ -6,24 +6,22 @@ import (
 	"github.com/zyuanx/research-sys/internal/middleware"
 )
 
-func RegisterUserRouter(r *gin.RouterGroup) {
-
-	userController := controller.NewUserController()
-	r.POST("/login", middleware.JWTAuthMiddleware.LoginHandler)
+func RegisterUserRouter(controller controller.Controller, r *gin.RouterGroup) {
+	r.POST("/login", controller.UserLogin)
 
 	group := r.Group("")
 	group.Use(middleware.AuthToken())
 	{
-		group.POST("/logout", middleware.JWTAuthMiddleware.LogoutHandler)
-		group.GET("/refresh_token", middleware.JWTAuthMiddleware.RefreshHandler)
-		group.GET("/info", userController.GetInfo)
+		// group.POST("/logout", middleware.JWTAuthMiddleware.LogoutHandler)
+		// group.GET("/refresh_token", middleware.JWTAuthMiddleware.RefreshHandler)
+		group.GET("/info", controller.UserGetInfo)
 
-		group.PUT("/change/password", userController.ChangePassword)
+		group.PUT("/change/password", controller.UserChangePassword)
 
-		group.GET("", userController.List)
-		group.GET("/:id", userController.Retrieve)
-		group.POST("", userController.Create)
-		group.PUT("/:id", userController.Update)
-		group.DELETE("/:id", userController.Destroy)
+		group.GET("", controller.UserList)
+		group.GET("/:id", controller.UserRetrieve)
+		group.POST("", controller.UserCreate)
+		group.PUT("/:id", controller.UserUpdate)
+		group.DELETE("/:id", controller.UserDelete)
 	}
 }

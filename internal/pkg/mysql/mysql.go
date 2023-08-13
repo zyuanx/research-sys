@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zyuanx/research-sys/internal/model"
 	"github.com/zyuanx/research-sys/internal/pkg/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -33,5 +34,6 @@ func NewMySQL(MySQLConfig *config.MySQLConfig) *gorm.DB {
 	// 设置连接池大小
 	sqlDb.SetMaxOpenConns(MySQLConfig.MaxOpenSize)
 	sqlDb.SetMaxIdleConns(MySQLConfig.MaxIdleSize)
+	db.AutoMigrate(&model.User{})
 	return db
 }
