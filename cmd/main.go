@@ -9,8 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zyuanx/research-sys/internal/controller"
 	"github.com/zyuanx/research-sys/internal/pkg/config"
+	"github.com/zyuanx/research-sys/internal/pkg/database"
 	"github.com/zyuanx/research-sys/internal/pkg/global"
-	"github.com/zyuanx/research-sys/internal/pkg/mysql"
+
 	"github.com/zyuanx/research-sys/internal/router"
 	"github.com/zyuanx/research-sys/internal/service"
 	"github.com/zyuanx/research-sys/tools"
@@ -30,7 +31,7 @@ func main() {
 
 	c := config.NewViper(ConfigFilePath)
 
-	global.MySQL = mysql.NewMySQL(&c.MySQL)
+	global.MySQL = database.NewSqlite()
 
 	gin.SetMode(c.Server.Mode)
 	r := gin.Default()

@@ -9,6 +9,8 @@ import (
 	"github.com/zyuanx/research-sys/internal/service"
 )
 
+var c controller.Controller
+
 func SetupRouter(r *gin.Engine, s *service.Service) *gin.Engine {
 
 	r.Use(middleware.CORS())
@@ -18,11 +20,11 @@ func SetupRouter(r *gin.Engine, s *service.Service) *gin.Engine {
 			"message": "pong",
 		})
 	})
-	controller := controller.NewController(s)
-	apiGroup := r.Group("/api")
-	RegisterUserRouter(controller, apiGroup.Group("/user"))
-	// RegisterRoleRouter(controller, apiGroup.Group("/role"))
-	// RegisterPermissionRouter(controller, apiGroup.Group("/permission"))
+
+	c = controller.NewController(s)
+	apiGroup := r.Group("api")
+	RegisterUserRouter(apiGroup)
+	RegisterRoleRouter(apiGroup)
 	// RegisterResearchRouter(controller, controllerapiGroup.Group("/research"))
 	// RegisterRecordRouter(controller, apiGroup.Group("/record"))
 	return r

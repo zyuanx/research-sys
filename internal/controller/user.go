@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zyuanx/research-sys/internal/form"
 	"github.com/zyuanx/research-sys/internal/model"
 	"github.com/zyuanx/research-sys/internal/pkg/config"
 	"github.com/zyuanx/research-sys/internal/pkg/constant"
@@ -18,19 +17,18 @@ import (
 
 func (c *Controller) UserLogin(ctx *gin.Context) {
 	payload := model.UserLoginReq{}
-	var err error
-	if err = ctx.ShouldBindJSON(&payload); err != nil {
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
 	user := model.User{}
-	if err = c.service.UserFindByUsername(&user, payload.Username); err != nil {
+	if err := c.service.UserFindByUsername(&user, payload.Username); err != nil {
 		err = errors.Wrap(err, ecode.RecordRetrieveErr, "未找到记录")
 		response.JSON(ctx, err, nil)
 		return
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password)); err != nil {
 		err = errors.Wrap(err, ecode.UserLoginErr, "密码错误")
 		response.JSON(ctx, err, nil)
 		return
@@ -42,12 +40,9 @@ func (c *Controller) UserLogin(ctx *gin.Context) {
 		response.JSON(ctx, errors.Wrap(err, ecode.UserLoginErr, "生成用户授权token失败"), nil)
 		return
 	}
-	response.JSON(ctx, nil, struct {
-		Token    string    `json:"token"`
-		ExpireAt time.Time `json:"expire_at"`
-	}{
-		Token:    token,
-		ExpireAt: expireAt,
+	response.JSON(ctx, nil, gin.H{
+		"token":     token,
+		"expire_at": expireAt,
 	})
 
 }
@@ -59,8 +54,8 @@ func (c *Controller) UserGetInfo(ctx *gin.Context) {
 		response.JSON(ctx, errors.Wrap(err, ecode.AuthTokenErr, "未登录"), nil)
 		return
 	}
-	user := model.User{}
-	if err := c.service.UserRetrieve(&user, id.(int)); err != nil {
+	user := &model.User{}
+	if err := c.service.UserRetrieve(user, id.(int64)); err != nil {
 		response.JSON(ctx, errors.Wrap(err, ecode.NotFoundErr, "未找到记录"), nil)
 		return
 	}
@@ -68,14 +63,14 @@ func (c *Controller) UserGetInfo(ctx *gin.Context) {
 }
 
 func (c *Controller) UserChangePassword(ctx *gin.Context) {
-	passwordForm := form.UserChangePasswordForm{}
+	req := model.UserChangePasswordReq{}
 	var err error
-	if err = ctx.ShouldBindJSON(&passwordForm); err != nil {
+	if err = ctx.ShouldBindJSON(&req); err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
-	if passwordForm.Password1 != passwordForm.Password2 {
+	if req.Password1 != req.Password2 {
 		err = errors.Wrap(err, ecode.ValidateErr, "两次密码不一致")
 		response.JSON(ctx, err, nil)
 		return
@@ -87,18 +82,18 @@ func (c *Controller) UserChangePassword(ctx *gin.Context) {
 		response.JSON(ctx, err, nil)
 		return
 	}
-	if err = c.service.UserRetrieve(&user, userId.(int)); err != nil {
+	if err = c.service.UserRetrieve(&user, userId.(int64)); err != nil {
 		err = errors.Wrap(err, ecode.NotFoundErr, "未找到记录")
 		response.JSON(ctx, err, nil)
 		return
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordForm.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "原密码错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
 	var hashedPassword []byte
-	if hashedPassword, err = bcrypt.GenerateFromPassword([]byte(passwordForm.Password1), bcrypt.DefaultCost); err != nil {
+	if hashedPassword, err = bcrypt.GenerateFromPassword([]byte(req.Password1), bcrypt.DefaultCost); err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "生成密码错误")
 		response.JSON(ctx, err, nil)
 		return
@@ -116,21 +111,21 @@ func (c *Controller) UserChangePassword(ctx *gin.Context) {
 }
 
 func (c *Controller) UserList(ctx *gin.Context) {
-	userListQuery := form.UserListQuery{}
-	if err := ctx.ShouldBindQuery(&userListQuery); err != nil {
+	req := model.UserListReq{}
+	if err := ctx.ShouldBindQuery(&req); err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
 	var users []model.User
-	page, size := userListQuery.Page, userListQuery.Size
+	page, size := req.Page, req.Size
 	var total int64
 	query := make(map[string]interface{})
-	if userListQuery.Username != "" {
-		query["username"] = userListQuery.Username
+	if req.Username != "" {
+		query["username"] = req.Username
 	}
-	if userListQuery.Name != "" {
-		query["name"] = userListQuery.Name
+	if req.Name != "" {
+		query["name"] = req.Name
 	}
 	if err := c.service.UserList(&users, page, size, &total, query); err != nil {
 		err = errors.Wrap(err, ecode.RecordListErr, "获取数据失败")
@@ -146,15 +141,14 @@ func (c *Controller) UserList(ctx *gin.Context) {
 }
 
 func (c *Controller) UserRetrieve(ctx *gin.Context) {
-	var id int
-	var err error
-	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "ID错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
 	user := model.User{}
-	if err = c.service.UserRetrieve(&user, id); err != nil {
+	if err = c.service.UserRetrieve(&user, int64(id)); err != nil {
 		err = errors.Wrap(err, ecode.RecordRetrieveErr, "未找到记录")
 		response.JSON(ctx, err, nil)
 		return
@@ -164,30 +158,28 @@ func (c *Controller) UserRetrieve(ctx *gin.Context) {
 }
 
 func (c *Controller) UserCreate(ctx *gin.Context) {
-	createForm := form.UserCreateForm{}
+	req := model.UserCreateReq{}
 	var err error
-	if err = ctx.ShouldBindJSON(&createForm); err != nil {
+	if err = ctx.ShouldBindJSON(&req); err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
-	if createForm.Password1 != createForm.Password2 {
+	if req.Password1 != req.Password2 {
 		err = errors.Wrap(err, ecode.ValidateErr, "两次密码不一致")
 		response.JSON(ctx, err, nil)
 		return
 	}
 	var hashedPassword []byte
-	if hashedPassword, err = bcrypt.GenerateFromPassword([]byte(createForm.Password1), bcrypt.DefaultCost); err != nil {
+	if hashedPassword, err = bcrypt.GenerateFromPassword([]byte(req.Password1), bcrypt.DefaultCost); err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "生成密码错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
 	user := model.User{
-		Username:  createForm.Username,
-		Nickname:  createForm.Nickname,
-		Password:  string(hashedPassword),
-		Telephone: createForm.Telephone,
-		Email:     createForm.Email,
+		Username: req.Username,
+		Password: string(hashedPassword),
+		Email:    req.Email,
 	}
 	if err = c.service.UserCreate(&user); err != nil {
 		err = errors.Wrap(err, ecode.RecordCreateErr, "创建用户失败")
@@ -204,30 +196,26 @@ func (c *Controller) UserCreate(ctx *gin.Context) {
 }
 
 func (c *Controller) UserUpdate(ctx *gin.Context) {
-	var id int
-	var err error
-	id, err = strconv.Atoi(ctx.Param("id"))
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "ID错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
-	updateForm := form.UserUpdateForm{}
-	if err = ctx.ShouldBindJSON(&updateForm); err != nil {
+	req := model.UserUpdateReq{}
+	if err = ctx.ShouldBindJSON(&req); err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
 		response.JSON(ctx, err, nil)
 		return
 	}
 	user := model.User{}
-	if err = c.service.UserRetrieve(&user, id); err != nil {
+	if err = c.service.UserRetrieve(&user, int64(id)); err != nil {
 		err = errors.Wrap(err, ecode.RecordRetrieveErr, "获取记录失败")
 		response.JSON(ctx, err, nil)
 		return
 	}
 	payload := map[string]interface{}{
-		"nickname":  updateForm.Nickname,
-		"telephone": updateForm.Telephone,
-		"email":     updateForm.Email,
+		"email": req.Email,
 		//"roles":     updateForm.Roles,
 	}
 	if err = c.service.UserUpdate(&user, payload); err != nil {
@@ -235,7 +223,7 @@ func (c *Controller) UserUpdate(ctx *gin.Context) {
 		response.JSON(ctx, err, nil)
 		return
 	}
-	if err = c.service.UserUpdateRole(&user, updateForm.Roles); err != nil {
+	if err = c.service.UserUpdateRole(&user, req.Roles); err != nil {
 		err = errors.Wrap(err, ecode.RecordUpdateErr, "更新用户失败")
 		response.JSON(ctx, err, nil)
 		return
@@ -250,7 +238,7 @@ func (c *Controller) UserDelete(ctx *gin.Context) {
 		response.JSON(ctx, err, nil)
 		return
 	}
-	if err = c.service.UserDestroy(id); err != nil {
+	if err = c.service.UserDelete(id); err != nil {
 		err = errors.Wrap(err, ecode.RecordDeleteErr, "删除用户失败")
 		response.JSON(ctx, err, nil)
 		return

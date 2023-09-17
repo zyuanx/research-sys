@@ -8,6 +8,5 @@ import (
 var (
 	RootDir string
 	MySQL   *gorm.DB
-	// Mysql   *gorm.DB
-	Redis *redis.Client
+	Redis   *redis.Client
 )

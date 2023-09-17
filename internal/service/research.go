@@ -56,6 +56,6 @@ package service
 // 	return nil
 // }
 
-// func (s *Service) ResearchDestroy(id int) error {
+// func (s *Service) ResearchDelete(id int) error {
 // 	panic("implement me")
 // }

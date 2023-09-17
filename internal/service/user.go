@@ -24,7 +24,7 @@ func (s *Service) UserList(users *[]model.User, page int, size int, total *int64
 	return nil
 }
 
-func (s *Service) UserRetrieve(user *model.User, id int) error {
+func (s *Service) UserRetrieve(user *model.User, id int64) error {
 	if err := s.db.Model(&model.User{}).
 		Preload("Roles").
 		First(&user, id).Error; err != nil {
@@ -47,7 +47,7 @@ func (s *Service) UserUpdate(user *model.User, payload map[string]interface{}) e
 	return nil
 }
 
-func (s *Service) UserDestroy(id int) error {
+func (s *Service) UserDelete(id int) error {
 	if err := s.db.Delete(&model.User{}, id).Error; err != nil {
 		return err
 	}

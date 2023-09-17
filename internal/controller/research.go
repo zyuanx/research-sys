@@ -25,7 +25,7 @@ package controller
 // 	Retrieve(c *gin.Context)
 // 	RetrieveOpen(c *gin.Context)
 // 	Update(c *gin.Context)
-// 	Destroy(c *gin.Context)
+// 	Delete(c *gin.Context)
 
 // 	Square(c *gin.Context)
 
@@ -176,14 +176,14 @@ package controller
 // 	util.Success(ctx, gin.H{}, "更新成功")
 // }
 
-// func (r ResearchController) Destroy(ctx *gin.Context) {
+// func (r ResearchController) Delete(ctx *gin.Context) {
 // 	id, err := strconv.Atoi(ctx.Param("id"))
 // 	if err != nil {
 // 		log.Println(err.Error())
 // 		util.Fail(ctx, gin.H{}, "参数错误")
 // 		return
 // 	}
-// 	if err = researchServices.Destroy(id); err != nil {
+// 	if err = researchServices.Delete(id); err != nil {
 // 		log.Println(err.Error())
 // 		util.Fail(ctx, gin.H{}, "删除失败")
 // 		return

@@ -2,26 +2,25 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zyuanx/research-sys/internal/controller"
 	"github.com/zyuanx/research-sys/internal/middleware"
 )
 
-func RegisterUserRouter(controller controller.Controller, r *gin.RouterGroup) {
-	r.POST("/login", controller.UserLogin)
+func RegisterUserRouter(r *gin.RouterGroup) {
+	group := r.Group("user")
+	group.POST("/login", c.UserLogin)
 
-	group := r.Group("")
 	group.Use(middleware.AuthToken())
 	{
 		// group.POST("/logout", middleware.JWTAuthMiddleware.LogoutHandler)
 		// group.GET("/refresh_token", middleware.JWTAuthMiddleware.RefreshHandler)
-		group.GET("/info", controller.UserGetInfo)
+		group.GET("/info", c.UserGetInfo)
 
-		group.PUT("/change/password", controller.UserChangePassword)
+		group.PUT("/change/password", c.UserChangePassword)
 
-		group.GET("", controller.UserList)
-		group.GET("/:id", controller.UserRetrieve)
-		group.POST("", controller.UserCreate)
-		group.PUT("/:id", controller.UserUpdate)
-		group.DELETE("/:id", controller.UserDelete)
+		group.GET("", c.UserList)
+		group.GET("/:id", c.UserRetrieve)
+		group.POST("", c.UserCreate)
+		group.PUT("/:id", c.UserUpdate)
+		group.DELETE("/:id", c.UserDelete)
 	}
 }
