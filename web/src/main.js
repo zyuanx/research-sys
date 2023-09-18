@@ -7,6 +7,8 @@ import App from './App.vue'
 import router from './router'
 import Antd from 'ant-design-vue'
 
+import '@/permission'
+
 const app = createApp(App)
 
 app.use(Antd)

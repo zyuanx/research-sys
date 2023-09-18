@@ -39,9 +39,7 @@ const handleClick = e => {
 watch(openKeys, val => {
     console.log('openKeys', val);
 });
-import AppMainView from './AppMainView.vue';
 </script>
-
 
 <template>
     <div style="display: flex;">
