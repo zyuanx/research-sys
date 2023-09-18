@@ -1,6 +1,5 @@
-## Research sys
+# Research sys
 
-### About The Project
-> Dynamic form, survey questionnaire backend system. Front-end repo: [vue-research-admin](https://github.com/Pandalzy/vue-research-admin)
+WPI 进入 [research-sys](https://github.com/zyuanx/research-sys) 开发分支查看
 
-base on Gin | GORM | gin-jwt | Casbin | mongo-driver | Swagger | Zap | Viper
+![demo](./demo.jpg)
