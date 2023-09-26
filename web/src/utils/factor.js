@@ -6,12 +6,14 @@ export const factorItems = {
   input: {
     factor: 'input',
     label: '短文本',
+    value: '',
     placeholder: '提示文字'
   },
   // 长文本
   textarea: {
     factor: 'textarea',
     label: '长文本',
+    value: '',
     placeholder: '提示文字',
     rows: 3
   },
@@ -19,6 +21,7 @@ export const factorItems = {
   radio: {
     factor: 'radio',
     label: '单选',
+    value: '',
     options: [
       { label: '选项1', value: '值1' },
       { label: '选项2', value: '值2' }
@@ -28,6 +31,7 @@ export const factorItems = {
   checkbox: {
     factor: 'checkbox',
     label: '多选',
+    value: [],
     options: [
       { label: '选项1', value: '值1' },
       { label: '选项2', value: '值2' }
@@ -37,6 +41,7 @@ export const factorItems = {
   select: {
     factor: 'select',
     label: '下拉选择',
+    value: '',
     options: [
       { label: '选项1', value: '值1' },
       { label: '选项2', value: '值2' }
@@ -45,76 +50,49 @@ export const factorItems = {
   // 时间选择
   timePicker: {
     factor: 'timePicker',
-    label: '时间选择'
+    label: '时间选择',
+    value: ''
   },
   // 日期选择
   datePicker: {
     factor: 'datePicker',
-    label: '日期选择'
+    label: '日期选择',
+    value: ''
   }
 }
 
-export const factorRules = {
-  text: [
-    {
-      required: true,
-      message: '请输入内容',
-      trigger: 'blur'
-    }
-  ],
-  textarea: [
-    {
-      required: true,
-      message: '请输入内容',
-      trigger: 'blur'
-    }
-  ],
-  radio: [
-    {
-      required: true,
-      message: '请选择一个值',
-      trigger: 'change'
-    }
-  ],
-  checkbox: [
-    {
-      required: true,
-      message: '请选择一个值',
-      trigger: 'change'
-    }
-  ],
-  select: [
-    {
-      required: true,
-      message: '请选择一个值',
-      trigger: 'change'
-    }
-  ],
-  timePicker: [
-    {
-      required: true,
-      message: '请选择时间',
-      trigger: 'change'
-    }
-  ],
-  datePicker: [
-    {
-      required: true,
-      message: '请选择日期',
-      trigger: 'change'
-    }
-  ]
-}
-
-export const factorValues = {
-  input: '',
-  textarea: '',
-  radio: '',
-  checkbox: [],
-  select: '',
-  timePicker: '',
-  datePicker: ''
-}
+export const factorRules = [
+  {
+    label: '必填',
+    reg: /\S/,
+    tip: '必填项'
+  },
+  {
+    label: '数字',
+    reg: /^\d+$/,
+    tip: '请输入数字'
+  },
+  {
+    label: '手机号',
+    reg: /^(?:(?:\+|00)86)?1(?:(?:3[\d])|(?:4[5-79])|(?:5[0-35-9])|(?:6[5-7])|(?:7[0-8])|(?:8[\d])|(?:9[1589]))\d{8}$/,
+    tip: '请输入正确的手机号'
+  },
+  {
+    label: '邮箱',
+    reg: /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/,
+    tip: '请输入正确的邮箱'
+  },
+  {
+    label: '身份证',
+    reg: /^[1-9]\d{5}(?:18|19|20)\d{2}(?:0[1-9]|10|11|12)(?:0[1-9]|[1-2]\d|30|31)\d{3}[\dXx]$/,
+    tip: '请输入正确的身份证号'
+  },
+  {
+    label: '姓名',
+    reg: /^(?:[\u4e00-\u9fa5·]{2,16})$/,
+    tip: '请输入正确的姓名'
+  }
+]
 
 export const research = {
   title: '问卷标题',
@@ -130,35 +108,35 @@ export const research = {
       fieldID: '7762c89-2d78-4447-b1b4-19f902149cbb',
       factor: 'radio',
       label: '单选',
+      value: '',
       options: [
         { label: '选项1', value: '1' },
         { label: '选项2', value: '2' }
       ],
-      rules: [{ required: true, message: '请选择一个值', trigger: 'change' }]
+      required: true,
+      rules: []
     },
     {
       fieldID: '7cb5873f-697e-4c46-87b6-156d0a368553',
       factor: 'input',
       label: '短文本',
+      value: '',
       placeholder: '请输入内容',
-      rules: [{ required: true, message: '请输入内容', trigger: 'blur' }]
+      required: true,
+      rules: []
     },
     {
       fieldID: 'c0a35eac-ccee-4705-bb3e-729bc6afb657',
       factor: 'checkbox',
       label: '多选',
+      value: [],
       options: [
         { label: '选项1', value: '1' },
         { label: '选项2', value: '2' }
       ],
-      rules: [{ required: true, message: '请选择一个值', trigger: 'change' }]
+      rules: []
     }
   ],
-  values: {
-    '7762c89-2d78-4447-b1b4-19f902149cbb': '',
-    '7cb5873f-697e-4c46-87b6-156d0a368553': '',
-    'c0a35eac-ccee-4705-bb3e-729bc6afb657': []
-  },
   once: 0,
   open: 0,
   startAt: new Date(),

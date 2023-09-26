@@ -1,15 +1,13 @@
 <script setup>
-import { ref, defineEmits } from 'vue'
+import { ref } from 'vue'
 const props = defineProps(['research', 'editIndex'])
 const emit = defineEmits(['setEditIdx'])
-console.log('ResearchDesign', props.research)
 const research = props.research
-const values = props.research.values
 const rules = ref([])
 function conLabel(idx, label) {
   return (idx + 1) + '. ' + label
 }
-const dragIndex = ref(0)
+// const dragIndex = ref(0)
 
 function setEditIdx(idx) {
   emit('setEditIdx', idx)
@@ -21,31 +19,32 @@ function setEditIdx(idx) {
   <div class="container" style="margin: 10px 5px 10px 5px;">
     <h1>{{ research.title }}</h1>
     <p>{{ research.description }}</p>
-    <a-form ref="formRef" :model="research" :rules="rules" layout="vertical">
+    <el-form ref="formRef" :model="research" :rules="rules" layout="vertical">
       <transition-group name="drag">
         <div v-for="(item, index) in research.items" :key="item.fieldID" draggable :class="[editIndex === index ? 'bg-select' : '', 'form-item']"
           @click="setEditIdx(index)">
-          <a-form-item ref="name" :label="conLabel(index, item.label)" name="name">
+          <el-form-item ref="name" :label="conLabel(index, item.label)" name="name" :required="item.required">
             <div v-if="item.factor === 'input'">
-              <a-input :value="values[item.fieldID]" :placeholder="item.placeholder" />
+              <el-input :value="item.value" :placeholder="item.placeholder" />
             </div>
             <div v-else-if="item.factor === 'textarea'">
-              <a-textarea :value="values[item.fieldID]" :placeholder="item.placeholder" :rows="4" />
+              <el-input type="textarea" :value="item.value" :placeholder="item.placeholder" :rows="4" />
             </div>
             <div v-else-if="item.factor === 'radio'">
-              <a-radio-group :value="values[item.fieldID]">
-                <a-radio v-for="(op, idx) in item.options" :key="idx" :value="op.value">{{ op.label }}</a-radio> </a-radio-group>
+              <el-radio-group :value="item.value">
+                <el-radio v-for="(op, idx) in item.options" :key="idx" :label="op.label" :value="op.value">{{ op.label }}</el-radio>
+              </el-radio-group>
             </div>
             <div v-else-if="item.factor === 'checkbox'">
-              <a-checkbox-group :value="values[item.fieldID]">
-                <a-checkbox v-for="(op, idx) in item.options" :key="idx" :value="op.value">{{ op.label }}</a-checkbox>
-              </a-checkbox-group>
+              <el-checkbox-group :value="item.value">
+                <el-checkbox v-for="(op, idx) in item.options" :key="idx" :label="op.label" :value="op.value">{{ op.label }}</el-checkbox>
+              </el-checkbox-group>
             </div>
-          </a-form-item>
+          </el-form-item>
         </div>
 
       </transition-group>
-    </a-form>
+    </el-form>
 
   </div>
 </template>

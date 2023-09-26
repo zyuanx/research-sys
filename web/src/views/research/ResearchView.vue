@@ -5,7 +5,7 @@ import ResearchMaterial from '@/components/research/ResearchMaterial.vue'
 import ResearchDesign from '@/components/research/ResearchDesign.vue'
 import ResearchAttribute from '@/components/research/ResearchAttribute.vue'
 
-import { research, factorItems, factorValues } from './factor'
+import { research, factorItems, } from '@/utils/factor'
 
 
 const researchData = ref(research)
@@ -16,31 +16,31 @@ function setEditIdx(idx) {
 }
 
 function itemAdd(item) {
-  console.log('itemAdd', item)
   const _item = factorItems[item]
-  console.log(_item)
   _item['fieldID'] = v4()
   researchData.value.items.push(_item)
-  const _value = factorValues[item]
-  researchData.value.values[_item.fieldID] = _value
 }
 
+// function updateResearch(data) {
+//   console.log('updateResearch', data)
+//   researchData.value = data
+// }
 </script>
 
 
 <template>
   <div>
-    <a-row>
-      <a-col :span="6">
+    <el-row>
+      <el-col :span="6">
         <ResearchMaterial @item-add="itemAdd"></ResearchMaterial>
-      </a-col>
-      <a-col :span="10">
+      </el-col>
+      <el-col :span="10">
         <ResearchDesign :research="researchData" @set-edit-idx="setEditIdx" :editIndex="editIndex"></ResearchDesign>
-      </a-col>
-      <a-col :span="8">
-        <ResearchAttribute :research="researchData" :editIndex="editIndex"></ResearchAttribute>
-      </a-col>
-    </a-row>
+      </el-col>
+      <el-col :span="8">
+        <ResearchAttribute :researchItem="researchData.items[editIndex]"></ResearchAttribute>
+      </el-col>
+    </el-row>
 
   </div>
 </template>
