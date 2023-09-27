@@ -7,7 +7,6 @@ export const constantRoutes = [
     component: () => import('@/views/LoginView.vue'),
     hidden: true
   },
-
   {
     path: '/',
     name: 'home',

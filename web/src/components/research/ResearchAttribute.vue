@@ -2,22 +2,26 @@
 import { computed } from 'vue';
 import {
   Delete,
-  Plus
+  Plus, Minus
 } from '@element-plus/icons-vue'
 
-import { factorRules } from '@/utils/factor'
+import { factorRules, factorRulesMap } from '@/utils/factor'
 
 const props = defineProps(['researchItem'])
-const emit = defineEmits(['updateResearch'])
+const emit = defineEmits(['update:researchItem'])
 const _researchItem = computed({
   get: () => props.researchItem,
   set: (val) => {
-    emit('updateResearch', val)
+    emit('update:researchItem', val)
   }
 })
 
 const checkFactor = computed(() => {
   return ['radio', 'checkbox', 'select'].includes(_researchItem.value.factor)
+})
+
+const hasPlaceholder = computed(() => {
+  return ['input', 'textarea'].includes(_researchItem.value.factor)
 })
 
 function deleteOption(index) {
@@ -32,27 +36,31 @@ function addOption() {
 
 function addRuleOption() {
   _researchItem.value.rules.push({
-    label: '',
-    reg: '',
-    tip: ''
+    ...factorRules[0]
   })
 }
 
+function ruleChange(index, val) {
+  // console.log('ruleChange')
+  _researchItem.value.rules[index] = {
+    ...factorRulesMap[val]
+  }
+}
 
 </script>
 
 
 <template>
-  <div class="container" style="margin: 10px 10px 10px 5px;">
+  <div style="margin: 10px 10px 10px 5px;">
     <h1>组件属性</h1>
     <h2>基本</h2>
     <el-form-item label="Id">
       <el-input :value="_researchItem.fieldID" disabled :bordered="false" />
     </el-form-item>
-    <el-form-item label="Title">
+    <el-form-item label="Label">
       <el-input v-model="_researchItem.label" />
     </el-form-item>
-    <el-form-item label="Placeholder">
+    <el-form-item label="Placeholder" v-if="hasPlaceholder">
       <el-input v-model="_researchItem.placeholder" />
     </el-form-item>
     <h2 v-if="checkFactor">选项</h2>
@@ -62,7 +70,7 @@ function addRuleOption() {
         <span style="margin: 2.5px;"></span>
         <el-input v-model="option.value" placeholder="value" />
         <span style="margin: 2.5px;"></span>
-        <el-button type="danger" :icon="Delete" circle @click="deleteOption(index)" />
+        <el-button type="danger" :icon="Minus" circle size="small" @click="deleteOption(index)" />
       </div>
       <div>
         <el-button link type="primary" :icon="Plus" @click="addOption">
@@ -76,15 +84,21 @@ function addRuleOption() {
     </el-form-item>
     <div>
       <div v-for="(rule, index) in _researchItem.rules" :key="index">
-        <el-select v-model="rule.label" style="width: 120px">
-          <el-option v-for="(options, idx) in factorRules" :key="idx" :label="options.label" :value="options.label">
-          </el-option>
-        </el-select>
+        <el-divider />
+        <div style="display: flex;justify-content: space-between;">
+          <el-form-item label="Label">
+            <el-select v-model="rule.id" style="width: 120px" @change="ruleChange(index, $event)">
+              <el-option v-for="(options, idx) in factorRules" :key="idx" :label="options.label" :value="options.id">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-button type="danger" :icon="Delete" @click="_researchItem.rules.splice(index, 1)" />
+        </div>
         <el-form-item label="Reg">
-          <el-input v-model:value="rule.reg" />
+          <el-input v-model="rule.reg" :disabled="rule.id !== 'custom'" />
         </el-form-item>
         <el-form-item label="Tip">
-          <el-input v-model:value="rule.tip" />
+          <el-input v-model="rule.tip" :disabled="rule.id !== 'custom'" />
         </el-form-item>
       </div>
       <div>
@@ -97,23 +111,6 @@ function addRuleOption() {
 </template>
 
 <style lang="scss" scoped>
-.container {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  padding: 10px;
-  height: 100%;
-
-  .form-item {
-    border-radius: 2px;
-    padding: 10px;
-  }
-
-  .bg-select {
-    border-top: 2px solid #3498db;
-    background-color: #f2f6fc;
-  }
-}
-
 .options {
   display: flex;
   flex-direction: row;

@@ -1,5 +1,4 @@
 <script setup>
-import { defineEmits } from 'vue'
 const emit = defineEmits(['itemAdd'])
 function itemAdd(item) {
   console.log('itemAdd', item)
@@ -9,7 +8,7 @@ function itemAdd(item) {
 
 
 <template>
-  <div class="container" style="margin: 10px 5px 10px 10px;;">
+  <div style="margin: 10px 5px 10px 10px;;">
     <el-space wrap>
       <el-button type="primary" @click="itemAdd('input')">短文本</el-button>
       <el-button type="primary" @click="itemAdd('textarea')">长文本</el-button>

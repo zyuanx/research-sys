@@ -3,7 +3,6 @@
 
 <template>
   <div style="display: flex;">
-
-    <AppMainView></AppMainView>
+    LayoutView
   </div>
 </template>

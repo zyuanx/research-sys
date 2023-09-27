@@ -1,41 +1,47 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 const props = defineProps(['research', 'editIndex'])
-const emit = defineEmits(['setEditIdx'])
+const emit = defineEmits(['update:editIndex'])
 const research = props.research
 const rules = ref([])
 function conLabel(idx, label) {
   return (idx + 1) + '. ' + label
 }
+
+const _editIndex = computed({
+  get: () => props.editIndex,
+  set: (val) => {
+    emit('update:editIndex', val)
+  }
+})
 // const dragIndex = ref(0)
 
-function setEditIdx(idx) {
-  emit('setEditIdx', idx)
-}
+
 </script>
 
 
 <template>
-  <div class="container" style="margin: 10px 5px 10px 5px;">
-    <h1>{{ research.title }}</h1>
-    <p>{{ research.description }}</p>
-    <el-form ref="formRef" :model="research" :rules="rules" layout="vertical">
-      <transition-group name="drag">
-        <div v-for="(item, index) in research.items" :key="item.fieldID" draggable :class="[editIndex === index ? 'bg-select' : '', 'form-item']"
-          @click="setEditIdx(index)">
+  <div style="margin: 10px 5px 10px 5px;">
+    <h1>{{ research.config.title }}</h1>
+    <p>{{ research.config.description }}</p>
+    <el-form ref="formRef" :model="research" :rules="rules" layout="vertical" :label-position="research.pattern.labelPosition"
+      :size="research.pattern.size" :label-width="research.pattern.labelWidth">
+      <transition-group name="drag" class="tg">
+        <div v-for="(item, index) in research.items" :key="item.fieldID" draggable :class="[_editIndex === index ? 'bg-select' : '', 'form-item']"
+          @click="_editIndex = index">
           <el-form-item ref="name" :label="conLabel(index, item.label)" name="name" :required="item.required">
-            <div v-if="item.factor === 'input'">
+            <div v-if="item.factor === 'input'" class="form-item-div">
               <el-input :value="item.value" :placeholder="item.placeholder" />
             </div>
-            <div v-else-if="item.factor === 'textarea'">
+            <div v-else-if="item.factor === 'textarea'" class="form-item-div">
               <el-input type="textarea" :value="item.value" :placeholder="item.placeholder" :rows="4" />
             </div>
-            <div v-else-if="item.factor === 'radio'">
+            <div v-else-if="item.factor === 'radio'" class="form-item-div">
               <el-radio-group :value="item.value">
                 <el-radio v-for="(op, idx) in item.options" :key="idx" :label="op.label" :value="op.value">{{ op.label }}</el-radio>
               </el-radio-group>
             </div>
-            <div v-else-if="item.factor === 'checkbox'">
+            <div v-else-if="item.factor === 'checkbox'" class="form-item-div">
               <el-checkbox-group :value="item.value">
                 <el-checkbox v-for="(op, idx) in item.options" :key="idx" :label="op.label" :value="op.value">{{ op.label }}</el-checkbox>
               </el-checkbox-group>
@@ -50,27 +56,23 @@ function setEditIdx(idx) {
 </template>
 
 <style lang="scss" scoped>
-.container {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
+.form-item {
+  border-radius: 2px;
   padding: 10px;
-  height: 100%;
+}
 
-  .form-item {
-    border-radius: 2px;
-    padding: 10px;
-  }
-
-  .bg-select {
-    border-top: 2px solid #3498db;
-    background-color: #f2f6fc;
-  }
+.bg-select {
+  border-top: 2px solid #3498db;
+  background-color: #f2f6fc;
 }
 
 // .drag-move {
 //   transition: transform 0.3s;
 // }
 
+// .el-input {
+//   width: initial !important;
+// }
 
 .bg-drag {
   border: 1.5px dashed #909399;
@@ -85,5 +87,9 @@ function setEditIdx(idx) {
   &:hover {
     background-color: #f2f6fc;
   }
+}
+
+.form-item-div {
+  width: 100%;
 }
 </style>
