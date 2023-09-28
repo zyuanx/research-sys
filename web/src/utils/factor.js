@@ -7,15 +7,25 @@ export const factorItems = {
     factor: 'input',
     label: '短文本',
     value: '',
-    placeholder: '提示文字'
+    placeholder: '请输入内容',
+    required: true,
+    showWordLimit: true,
+    minLength: 0,
+    maxLength: 10,
+    rules: []
   },
   // 长文本
   textarea: {
     factor: 'textarea',
     label: '长文本',
     value: '',
-    placeholder: '提示文字',
-    rows: 3
+    placeholder: '请输入内容',
+    required: true,
+    showWordLimit: true,
+    minLength: 0,
+    maxLength: 20,
+    rows: 3,
+    rules: []
   },
   // 单选
   radio: {
@@ -23,19 +33,25 @@ export const factorItems = {
     label: '单选',
     value: '',
     options: [
-      { label: '选项1', value: '值1' },
-      { label: '选项2', value: '值2' }
-    ]
+      { label: '选项1', value: '1' },
+      { label: '选项2', value: '2' }
+    ],
+    required: true,
+    rules: []
   },
   // 多选
   checkbox: {
     factor: 'checkbox',
     label: '多选',
     value: [],
+    min: 0,
+    max: 2,
     options: [
       { label: '选项1', value: '值1' },
       { label: '选项2', value: '值2' }
-    ]
+    ],
+    required: true,
+    rules: []
   },
   // 下拉选择
   select: {
@@ -45,7 +61,9 @@ export const factorItems = {
     options: [
       { label: '选项1', value: '值1' },
       { label: '选项2', value: '值2' }
-    ]
+    ],
+    required: true,
+    rules: []
   },
   // 时间选择
   timePicker: {
@@ -57,6 +75,7 @@ export const factorItems = {
   datePicker: {
     factor: 'datePicker',
     label: '日期选择',
+    type: 'date',
     value: ''
   }
 }
@@ -147,6 +166,9 @@ export const research = {
       value: '',
       placeholder: '请输入内容',
       required: true,
+      showWordLimit: true,
+      minLength: 0,
+      maxLength: 10,
       rules: []
     },
     {
@@ -154,10 +176,25 @@ export const research = {
       factor: 'checkbox',
       label: '多选',
       value: [],
+      min: 0,
+      max: 2,
       options: [
         { label: '选项1', value: '1' },
         { label: '选项2', value: '2' }
       ],
+      rules: []
+    },
+    {
+      fieldID: '7cb5873f-697e-4c46-87b6-156d0a368553',
+      factor: 'textarea',
+      label: '长文本',
+      value: '',
+      placeholder: '请输入内容',
+      required: true,
+      showWordLimit: true,
+      minLength: 0,
+      maxLength: 20,
+      rows: 3,
       rules: []
     }
   ]

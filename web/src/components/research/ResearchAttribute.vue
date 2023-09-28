@@ -53,6 +53,7 @@ function ruleChange(index, val) {
 <template>
   <div style="margin: 10px 10px 10px 5px;">
     <h1>组件属性</h1>
+    <span>{{ _researchItem }}</span>
     <h2>基本</h2>
     <el-form-item label="Id">
       <el-input :value="_researchItem.fieldID" disabled :bordered="false" />
@@ -62,6 +63,28 @@ function ruleChange(index, val) {
     </el-form-item>
     <el-form-item label="Placeholder" v-if="hasPlaceholder">
       <el-input v-model="_researchItem.placeholder" />
+    </el-form-item>
+    <el-form-item label="Min" v-if="_researchItem.factor === 'checkbox'">
+      <el-input-number v-model="_researchItem.min" :min="0" :max="10" />
+    </el-form-item>
+    <el-form-item label="Max" v-if="_researchItem.factor === 'checkbox'">
+      <el-input-number v-model="_researchItem.max" :min="1" />
+    </el-form-item>
+    <el-form-item label="MinLength" v-if="hasPlaceholder">
+      <el-input-number v-model="_researchItem.minLength" :min="0" :max="10" />
+    </el-form-item>
+    <el-form-item label="MaxLength" v-if="hasPlaceholder">
+      <el-input-number v-model="_researchItem.maxLength" :min="1" />
+    </el-form-item>
+    <el-form-item label="showWordLimit" v-if="hasPlaceholder">
+      <el-switch v-model="_researchItem.showWordLimit" />
+    </el-form-item>
+    <el-form-item label="type" v-if="_researchItem.factor === 'datePicker'">
+      <el-radio-group v-model="_researchItem.type">
+        <el-radio-button label="date">date</el-radio-button>
+        <el-radio-button label="month">month</el-radio-button>
+        <el-radio-button label="year">year</el-radio-button>
+      </el-radio-group>
     </el-form-item>
     <h2 v-if="checkFactor">选项</h2>
     <div v-if="checkFactor">

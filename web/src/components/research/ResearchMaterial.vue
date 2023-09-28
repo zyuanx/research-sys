@@ -1,7 +1,6 @@
 <script setup>
 const emit = defineEmits(['itemAdd'])
 function itemAdd(item) {
-  console.log('itemAdd', item)
   emit('itemAdd', item)
 }
 </script>
@@ -15,8 +14,8 @@ function itemAdd(item) {
       <el-button type="primary" @click="itemAdd('radio')">单选框</el-button>
       <el-button type="primary" @click="itemAdd('checkbox')">复选框</el-button>
       <el-button type="primary" @click="itemAdd('select')">下拉选择</el-button>
-      <el-button type="primary" @click="itemAdd('time')">时间选择</el-button>
-      <el-button type="primary" @click="itemAdd('date')">日期选择</el-button>
+      <el-button type="primary" @click="itemAdd('timePicker')">时间选择</el-button>
+      <el-button type="primary" @click="itemAdd('datePicker')">日期选择</el-button>
     </el-space>
   </div>
 </template>
