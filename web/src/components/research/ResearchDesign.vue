@@ -37,7 +37,7 @@ function remove(index) {
 
 
 <template>
-  <div style="margin: 10px 5px 10px 5px;">
+  <div>
     <h1>{{ _research.config.title }}</h1>
     <p>{{ _research.config.description }}</p>
     <el-form ref="formRef" id="editForm" :model="_research" :rules="rules" layout="vertical" :label-position="_research.pattern.labelPosition"

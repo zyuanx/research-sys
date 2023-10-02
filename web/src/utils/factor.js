@@ -37,6 +37,7 @@ export const factorItems = {
       { label: '选项2', value: '2' }
     ],
     required: true,
+    requiredMsg: '请选择选项',
     rules: []
   },
   // 多选
@@ -50,6 +51,7 @@ export const factorItems = {
       { label: '选项1', value: '值1' },
       { label: '选项2', value: '值2' }
     ],
+    requiredMsg: '请选择选项',
     required: true,
     rules: []
   },
@@ -63,30 +65,29 @@ export const factorItems = {
       { label: '选项2', value: '值2' }
     ],
     required: true,
+    requiredMsg: '请选择选项',
     rules: []
   },
   // 时间选择
   timePicker: {
     factor: 'timePicker',
     label: '时间选择',
-    value: ''
+    value: '',
+    required: true,
+    requiredMsg: '请选择时间'
   },
   // 日期选择
   datePicker: {
     factor: 'datePicker',
     label: '日期选择',
     type: 'date',
-    value: ''
+    value: '',
+    required: true,
+    requiredMsg: '请选择日期'
   }
 }
 
 export const factorRules = [
-  {
-    id: 'required',
-    label: '必填',
-    reg: /\S/,
-    tip: '必填项'
-  },
   {
     id: 'number',
     label: '数字',
@@ -157,6 +158,7 @@ export const research = {
         { label: '选项2', value: '2' }
       ],
       required: true,
+      requiredMsg: '请选择选项',
       rules: []
     },
     {
@@ -166,6 +168,7 @@ export const research = {
       value: '',
       placeholder: '请输入内容',
       required: true,
+      requiredMsg: '请输入内容',
       showWordLimit: true,
       minLength: 0,
       maxLength: 10,
@@ -178,6 +181,8 @@ export const research = {
       value: [],
       min: 0,
       max: 2,
+      required: false,
+      requiredMsg: '请选择选项',
       options: [
         { label: '选项1', value: '1' },
         { label: '选项2', value: '2' }
@@ -191,6 +196,7 @@ export const research = {
       value: '',
       placeholder: '请输入内容',
       required: true,
+      requiredMsg: '请输入内容',
       showWordLimit: true,
       minLength: 0,
       maxLength: 20,

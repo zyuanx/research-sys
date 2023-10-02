@@ -30,14 +30,18 @@ const researchSetting = ref(false)
         <ResearchMaterial class="container" @item-add="itemAdd"></ResearchMaterial>
       </el-col>
       <el-col :span="10">
-        <div class="tools" style="display: flex;justify-content: end;align-items: center;">
-          <el-button type="primary" text>预览</el-button>
-          <el-button :type="researchSetting ? 'primary' : 'success'" @click="researchSetting = !researchSetting"
-            :icon="researchSetting ? Setting : Operation">
-            {{ researchSetting ? '设置' : '属性' }}
-          </el-button>
+        <div class="container" style="margin: 10px 5px 10px 5px;">
+          <div class="tools" style="display: flex;justify-content: end;align-items: center;">
+            <el-button type="primary" text>预览</el-button>
+            <el-button :type="researchSetting ? 'primary' : 'success'" @click="researchSetting = !researchSetting"
+              :icon="researchSetting ? Setting : Operation">
+              {{ researchSetting ? '设置' : '属性' }}
+            </el-button>
+          </div>
+
+          <ResearchDesign :research="researchData" v-model:editIndex="editIndex" style="overflow-y: auto;height: 80vh;"></ResearchDesign>
         </div>
-        <ResearchDesign :research="researchData" v-model:editIndex="editIndex" style="overflow-y: auto;height: 80vh;"></ResearchDesign>
+
       </el-col>
       <el-col :span="8">
         <ResearchSetting v-if="researchSetting" class="container" v-model:pattern="researchData.pattern" v-model:config="researchData.config">
@@ -56,10 +60,5 @@ const researchSetting = ref(false)
   border-radius: 8px;
   padding: 10px;
   height: 100%;
-}
-
-.tools {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
 }
 </style>

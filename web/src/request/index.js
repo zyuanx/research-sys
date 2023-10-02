@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { message } from 'ant-design-vue'
 import { userAuthStore } from '@/stores/auth'
 const api = axios.create({
   baseURL: 'http://localhost:8080',
@@ -26,7 +25,7 @@ api.interceptors.response.use(
   },
   (err) => {
     const res = err.response.data
-    message.error(res.message)
+    console.log(res)
     Promise.reject(err)
   }
 )

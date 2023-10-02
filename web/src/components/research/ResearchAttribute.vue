@@ -105,6 +105,9 @@ function ruleChange(index, val) {
     <el-form-item label="Required">
       <el-switch v-model="_researchItem.required" />
     </el-form-item>
+    <el-form-item label="RequiredMsg" v-if="_researchItem.required">
+      <el-input v-model="_researchItem.requiredMsg" />
+    </el-form-item>
     <div>
       <div v-for="(rule, index) in _researchItem.rules" :key="index">
         <el-divider />
