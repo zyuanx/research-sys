@@ -15,7 +15,21 @@ router.beforeEach(async (to, from, next) => {
     if (to.path === '/login') {
       next({ path: '/' })
     } else {
-      // 获取用户角色
+      const roles = auth.userInfo.roles
+      const hasRoles = roles && roles.length > 0
+      if (hasRoles) {
+        next()
+      } else {
+        try {
+          const { roles } = await auth.getUserInfo()
+          const accessRoutes = await auth.getAccessRoutes(roles)
+          router.addRoute(accessRoutes)
+          next({ ...to, replace: true })
+        } catch (error) {
+          await auth.resetToken()
+          next(`/login?redirect=${to.path}`)
+        }
+      }
     }
   } else {
     let pass = false
@@ -31,7 +45,6 @@ router.beforeEach(async (to, from, next) => {
       next(`/login?redirect=${to.path}`)
     }
   }
-  next()
 })
 
 // function hasPermission(roles, route) {
