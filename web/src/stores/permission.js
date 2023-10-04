@@ -1,39 +1,50 @@
-import { ref, h } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { constantRoutes } from '@/router'
-
-function getItem(label, key, icon, children, type) {
-  return {
-    key,
-    icon,
-    children,
-    label,
-    type
-  }
-}
-
-function makeRoute(r) {
+import { constantRoutes, dynamicRoutes } from '@/router'
+function makeDynamicRoute(r, roles) {
   const routes = []
-  console.log(r)
 
   r.forEach((item) => {
     if (item.hidden) {
       return
     }
-    const label = item.meta && item.meta.title ? item.meta.title : item.name
-    if (item.children?.length === 0) {
-      routes.push(getItem(label, item.path, () => h(item.meta.icon), null, null))
+    let flag = false
+    if (item.meta && item.meta.roles) {
+      if (roles.some((role) => item.meta.roles.includes(role))) {
+        flag = true
+      }
+    }
+    if (!flag) {
+      return
+    }
+    if (item?.children?.length || 0 === 0) {
+      routes.push(item)
     } else {
-      routes.push(
-        getItem(label, item.path, () => h(item.meta.icon), makeRoute(item.children), 'group')
-      )
+      const newItem = { ...item }
+      newItem.children = makeDynamicRoute(item.children, roles)
+      routes.push(newItem)
     }
   })
   return routes
 }
 
-export const usePermissionStore = defineStore('permission', () => {
-  console.log('constantRoutes', constantRoutes)
-  const routes = ref(makeRoute(constantRoutes))
-  return { routes }
-})
+export const usePermissionStore = defineStore(
+  'user-permission',
+  () => {
+    const router = ref([])
+    const test = ref('test')
+    router.value = constantRoutes
+
+    function getRoute(roles) {
+      const dyRouter = makeDynamicRoute(dynamicRoutes, roles)
+      router.value.push(...dyRouter)
+      return dyRouter
+    }
+    return { router, test, getRoute }
+  },
+  {
+    persist: {
+      storage: localStorage
+    }
+  }
+)

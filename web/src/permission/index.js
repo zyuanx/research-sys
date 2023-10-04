@@ -1,18 +1,18 @@
 import router from '@/router'
-import { userAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
+import { usePermissionStore } from '@/stores/permission'
 
 const whiteList = ['/login']
 
 router.beforeEach(async (to, from, next) => {
   console.log('to', to)
   console.log('from', from)
-  console.log('next', next)
   document.title = to.meta.title
-  const auth = userAuthStore()
-  console.log('auth', auth)
-  const token = localStorage.getItem('token')
+  const auth = useAuthStore()
+  const token = auth.token
+  console.log('token', token)
   if (token) {
-    if (to.path === '/login') {
+    if (to.path === '/login1') {
       next({ path: '/' })
     } else {
       const roles = auth.userInfo.roles
@@ -21,11 +21,14 @@ router.beforeEach(async (to, from, next) => {
         next()
       } else {
         try {
-          const { roles } = await auth.getUserInfo()
-          const accessRoutes = await auth.getAccessRoutes(roles)
+          const userInfo = await auth.getUserInfo()
+          const roles = userInfo.roles.map((item) => item.title)
+          const permission = usePermissionStore()
+          const accessRoutes = await permission.getRoute(roles)
           router.addRoute(accessRoutes)
           next({ ...to, replace: true })
         } catch (error) {
+          console.log('error', error)
           await auth.resetToken()
           next(`/login?redirect=${to.path}`)
         }

@@ -4,17 +4,20 @@ import Layout from '@/layout/LayoutView.vue'
 export const constantRoutes = [
   {
     path: '/login',
+    name: 'login',
+    meta: {
+      title: '登录'
+    },
     component: () => import('@/views/LoginView.vue'),
     hidden: true
   },
   {
     path: '/',
-    name: 'home',
     component: Layout,
     redirect: '/dashboard',
     children: [
       {
-        path: 'dashboard',
+        path: '/dashboard',
         name: 'Dashboard',
         component: () => import('@/views/DashboardView.vue'),
         meta: {
@@ -24,10 +27,31 @@ export const constantRoutes = [
       }
     ]
   },
+
   {
     path: '/research',
     name: 'research',
-    component: () => import('@/views/research/ResearchView.vue')
+    component: Layout,
+    children: [
+      {
+        path: 'list',
+        name: 'researchList',
+        component: () => import('@/views/ResearchListView.vue')
+      },
+      {
+        path: 'detail',
+        name: 'researchDetail'
+      },
+      {
+        path: 'create',
+        name: 'researchCreate',
+        meta: {
+          title: '创建调研'
+        },
+
+        component: () => import('@/views/research/ResearchView.vue')
+      }
+    ]
   },
   {
     path: '/about',
@@ -36,6 +60,25 @@ export const constantRoutes = [
     // this generates a separate chunk (About.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import('../views/AboutView.vue')
+  }
+]
+
+export const dynamicRoutes = [
+  {
+    path: '/admin',
+    name: 'admin',
+    component: Layout,
+    meta: {
+      roles: ['admin']
+    }
+  },
+  {
+    path: '/user',
+    name: 'user',
+    component: Layout,
+    meta: {
+      roles: ['user']
+    }
   }
 ]
 

@@ -1,42 +1,46 @@
 <script setup>
 import { ref } from 'vue'
-import { login } from "@/api/auth"
-
-import { userAuthStore } from '@/stores/auth'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useCounterStore } from '@/stores/counter'
 const formState = ref({
   username: 'admin',
   password: '123456',
 });
 
+const router = useRouter();
+const route = useRoute();
+const redirect = route.query.redirect || '/';
+console.log(router, route)
 async function Login() {
   const payload = {
     'username': formState.value.username,
     'password': formState.value.password
   }
-  const res = await login(payload)
-  console.log(res)
-  const auth = userAuthStore()
-  if (res.err_code == 0) {
-    auth.token = res.data.token
-  }
-  localStorage.setItem('token', res.data.token)
+  const auth = useAuthStore()
+  await auth.userLogin(payload)
+  const counter = useCounterStore()
+  counter.increment()
+  router.replace(redirect)
 }
+
+
 </script>
 
 <template>
   <div style="margin: 20px auto;width: 300px;">
-    <a-form :model="formState" name="basic" autocomplete="off" @finish="onFinish" @finishFailed="onFinishFailed">
-      <a-form-item :rules="[{ required: true, message: 'Please input your username!' }]">
-        <a-input v-model:value="formState.username" />
-      </a-form-item>
+    <el-form :model="formState" name="basic" autocomplete="off">
+      <el-form-item :rules="[{ required: true, message: 'Please input your username!' }]">
+        <el-input v-model:value="formState.username" />
+      </el-form-item>
 
-      <a-form-item :rules="[{ required: true, message: 'Please input your password!' }]">
-        <a-input-password v-model:value="formState.password" />
-      </a-form-item>
-      <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
-        <a-button type="primary" html-type="submit" @click="Login">login</a-button>
-      </a-form-item>
-    </a-form>
+      <el-form-item :rules="[{ required: true, message: 'Please input your password!' }]">
+        <el-input type="password" v-model:value="formState.password" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="Login">login</el-button>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 
