@@ -14,6 +14,9 @@ dependencies:
   element-plus:
     specifier: ^2.3.14
     version: 2.3.14(vue@3.3.4)
+  lodash-unified:
+    specifier: ^1.0.3
+    version: 1.0.3(@types/lodash-es@4.17.9)(lodash-es@4.17.21)(lodash@4.17.21)
   pinia:
     specifier: ^2.1.6
     version: 2.1.6(vue@3.3.4)

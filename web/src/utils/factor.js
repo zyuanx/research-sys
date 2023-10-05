@@ -158,7 +158,6 @@ export const research = {
         { label: '选项2', value: '2' }
       ],
       required: true,
-      requiredMsg: '请选择选项',
       rules: []
     },
     {
@@ -168,7 +167,6 @@ export const research = {
       value: '',
       placeholder: '请输入内容',
       required: true,
-      requiredMsg: '请输入内容',
       showWordLimit: true,
       minLength: 0,
       maxLength: 10,
@@ -181,8 +179,7 @@ export const research = {
       value: [],
       min: 0,
       max: 2,
-      required: false,
-      requiredMsg: '请选择选项',
+      required: true,
       options: [
         { label: '选项1', value: '1' },
         { label: '选项2', value: '2' }
@@ -190,13 +187,12 @@ export const research = {
       rules: []
     },
     {
-      fieldID: '7cb5873f-697e-4c46-87b6-156d0a368553',
+      fieldID: 'a7817062-12ac-4ff8-8e60-4fbc1a023aee',
       factor: 'textarea',
       label: '长文本',
       value: '',
       placeholder: '请输入内容',
       required: true,
-      requiredMsg: '请输入内容',
       showWordLimit: true,
       minLength: 0,
       maxLength: 20,

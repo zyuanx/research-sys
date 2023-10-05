@@ -4,7 +4,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import { Edit, Delete } from '@element-plus/icons-vue'
 const props = defineProps(['research', 'editIndex'])
 const emit = defineEmits(['update:research', 'update:editIndex'])
-const rules = ref([])
+const rules = ref({})
 
 const _research = computed({
   get: () => props.research,
@@ -66,8 +66,9 @@ function remove(index) {
             </div>
             <div v-else-if="item.factor === 'checkbox'" class="form-item-div">
               <el-checkbox-group :value="item.value" :min="item.min" :max="item.max">
-                <el-checkbox v-for="(op, idx) in item.options" :key="idx" :id="op.value" :label="op.label" :value="op.value">{{ op.label
-                }}</el-checkbox>
+                <el-checkbox v-for="(op, idx) in item.options" :key="idx" :id="op.value" :label="op.label" :value="op.value">
+                  {{ op.label }}
+                </el-checkbox>
               </el-checkbox-group>
             </div>
             <div v-else-if="item.factor === 'select'" class="form-item-div">
