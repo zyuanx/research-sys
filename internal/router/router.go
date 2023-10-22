@@ -25,7 +25,7 @@ func SetupRouter(r *gin.Engine, s *service.Service) *gin.Engine {
 	apiGroup := r.Group("api")
 	RegisterUserRouter(apiGroup)
 	RegisterRoleRouter(apiGroup)
-	// RegisterResearchRouter(controller, controllerapiGroup.Group("/research"))
+	RegisterResearchRouter(apiGroup)
 	// RegisterRecordRouter(controller, apiGroup.Group("/record"))
 	return r
 }

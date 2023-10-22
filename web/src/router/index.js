@@ -36,7 +36,7 @@ export const constantRoutes = [
       {
         path: 'list',
         name: 'researchList',
-        component: () => import('@/views/ResearchListView.vue')
+        component: () => import('@/views/research/ResearchListView.vue')
       },
       {
         path: 'detail',
@@ -48,8 +48,7 @@ export const constantRoutes = [
         meta: {
           title: '创建调研'
         },
-
-        component: () => import('@/views/research/ResearchView.vue')
+        component: () => import('@/views/research/ResearchCreateView.vue')
       }
     ]
   },

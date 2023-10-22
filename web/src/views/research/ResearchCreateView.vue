@@ -1,21 +1,23 @@
 <script setup>
 import { ref } from 'vue'
-import { v4 } from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 import ResearchMaterial from '@/components/research/ResearchMaterial.vue'
 import ResearchDesign from '@/components/research/ResearchDesign.vue'
 import ResearchAttribute from '@/components/research/ResearchAttribute.vue'
 import ResearchSetting from '@/components/research/ResearchSetting.vue'
 import { Setting, Operation } from '@element-plus/icons-vue'
 
-import { research, factorItems, } from '@/utils/factor'
-import ResearchPreview from '../../components/research/ResearchPreview.vue'
+import { research, factorItems } from '@/utils/factor'
+
+import { createResearch } from '@/api/research'
+import ResearchPreview from '@/components/research/ResearchPreview.vue'
 const researchData = ref(research)
 const editIndex = ref(0)
 
 
 function itemAdd(item) {
   const _item = { ...factorItems[item] }
-  _item['fieldID'] = v4()
+  _item['fieldID'] = uuidv4()
   researchData.value.items.push(_item)
 }
 const researchSetting = ref(false)
@@ -52,6 +54,27 @@ function previewResearch() {
   }
   drawer.value = true
 }
+
+async function CreateResearch() {
+  const payload = {
+    title: researchData.value.config.title,
+    description: researchData.value.config.description,
+    pattern: researchData.value.pattern,
+    config: researchData.value.config,
+    items: researchData.value.items,
+    once: researchData.value.config.once,
+    open: researchData.value.config.open,
+  }
+  const start = new Date(researchData.value.config.startAt)
+  const end = new Date(researchData.value.config.endAt)
+  if (start > end) {
+    return
+  }
+  payload.startAt = start.toISOString()
+  payload.endAt = end.toISOString()
+  const res = await createResearch(payload)
+  console.log(res)
+}
 </script>
 
 
@@ -65,6 +88,7 @@ function previewResearch() {
         <div class="container" style="margin: 10px 5px 10px 5px;">
           <div class="tools" style="display: flex;justify-content: end;align-items: center;">
             <el-button type="primary" text @click="previewResearch">预览</el-button>
+            <el-button type="warning" text @click="CreateResearch">发布</el-button>
             <el-button :type="researchSetting ? 'primary' : 'success'" @click="researchSetting = !researchSetting"
               :icon="researchSetting ? Setting : Operation">
               {{ researchSetting ? '设置' : '属性' }}

@@ -48,14 +48,14 @@ func (c *Controller) UserLogin(ctx *gin.Context) {
 }
 
 func (c *Controller) UserGetInfo(ctx *gin.Context) {
-	id, exist := ctx.Get(constant.UserID)
+	userId, exist := ctx.Get(constant.UserID)
 	if !exist {
 		var err error
 		response.JSON(ctx, errors.Wrap(err, ecode.AuthTokenErr, "未登录"), nil)
 		return
 	}
 	user := &model.User{}
-	if err := c.service.UserRetrieve(user, id.(int64)); err != nil {
+	if err := c.service.UserRetrieve(user, userId.(uint64)); err != nil {
 		response.JSON(ctx, errors.Wrap(err, ecode.NotFoundErr, "未找到记录"), nil)
 		return
 	}
@@ -82,7 +82,7 @@ func (c *Controller) UserChangePassword(ctx *gin.Context) {
 		response.JSON(ctx, err, nil)
 		return
 	}
-	if err = c.service.UserRetrieve(&user, userId.(int64)); err != nil {
+	if err = c.service.UserRetrieve(&user, userId.(uint64)); err != nil {
 		err = errors.Wrap(err, ecode.NotFoundErr, "未找到记录")
 		response.JSON(ctx, err, nil)
 		return
@@ -148,7 +148,7 @@ func (c *Controller) UserRetrieve(ctx *gin.Context) {
 		return
 	}
 	user := model.User{}
-	if err = c.service.UserRetrieve(&user, int64(id)); err != nil {
+	if err = c.service.UserRetrieve(&user, id); err != nil {
 		err = errors.Wrap(err, ecode.RecordRetrieveErr, "未找到记录")
 		response.JSON(ctx, err, nil)
 		return
@@ -209,7 +209,7 @@ func (c *Controller) UserUpdate(ctx *gin.Context) {
 		return
 	}
 	user := model.User{}
-	if err = c.service.UserRetrieve(&user, int64(id)); err != nil {
+	if err = c.service.UserRetrieve(&user, id); err != nil {
 		err = errors.Wrap(err, ecode.RecordRetrieveErr, "获取记录失败")
 		response.JSON(ctx, err, nil)
 		return
@@ -232,7 +232,7 @@ func (c *Controller) UserUpdate(ctx *gin.Context) {
 }
 
 func (c *Controller) UserDelete(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
 		err = errors.Wrap(err, ecode.ValidateErr, "ID错误")
 		response.JSON(ctx, err, nil)

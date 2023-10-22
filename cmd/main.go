@@ -41,5 +41,5 @@ func main() {
 	controller.NewController(s)
 	router.SetupRouter(r, s)
 
-	r.Run(fmt.Sprintf("0.0.0.0:%d", c.Server.Port))
+	r.Run(fmt.Sprintf("127.0.0.1:%d", c.Server.Port))
 }

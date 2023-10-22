@@ -1,233 +1,186 @@
 package controller
 
-// import (
-// 	"encoding/json"
-// 	"gin-research-sys/internal/util"
+import (
+	"encoding/json"
+	"strconv"
 
-// 	"log"
-// 	"net/http"
-// 	"strconv"
+	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/model"
+	"github.com/zyuanx/research-sys/internal/pkg/constant"
+	"github.com/zyuanx/research-sys/internal/pkg/errors"
+	"github.com/zyuanx/research-sys/internal/pkg/errors/ecode"
+	"github.com/zyuanx/research-sys/internal/pkg/response"
+)
 
-// 	"github.com/360EntSecGroup-Skylar/excelize/v2"
-// 	jwt "github.com/appleboy/gin-jwt/v2"
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/zyuanx/research-sys/internal/form"
-// 	"github.com/zyuanx/research-sys/internal/model"
-// 	"github.com/zyuanx/research-sys/internal/pkg/errors"
-// 	"github.com/zyuanx/research-sys/internal/pkg/errors/ecode"
-// 	"github.com/zyuanx/research-sys/internal/pkg/response"
-// 	"github.com/zyuanx/research-sys/internal/request"
-// )
+func (c *Controller) ResearchList(ctx *gin.Context) {
+	req := model.ResearchListReq{}
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	var researches []model.Research
+	page, size := req.Page, req.Size
+	var total int64
 
-// type IResearchController interface {
-// 	List(c *gin.Context)
-// 	Create(c *gin.Context)
-// 	Retrieve(c *gin.Context)
-// 	RetrieveOpen(c *gin.Context)
-// 	Update(c *gin.Context)
-// 	Delete(c *gin.Context)
+	query := make(map[string]interface{})
 
-// 	Square(c *gin.Context)
+	if err := c.service.ResearchList(&researches, page, size, &total, query); err != nil {
+		err = errors.Wrap(err, ecode.RecordListErr, "获取数据失败")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	results := make([]model.ResearchRes, len(researches))
+	for i, research := range researches {
+		results[i] = research.ToRes()
+	}
+	response.JSON(ctx, nil, gin.H{
+		"page":    page,
+		"size":    size,
+		"results": researches,
+		"total":   total,
+	})
+}
 
-// 	DownloadExcel(ctx *gin.Context)
-// }
-// type ResearchController struct{}
+func (c *Controller) ResearchRetrieve(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "ID错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	research := model.Research{}
+	if err = c.service.ResearchRetrieve(&research, id); err != nil {
+		err = errors.Wrap(err, ecode.RecordRetrieveErr, "未找到记录")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	response.JSON(ctx, nil, research.ToRes())
+}
 
-// func NewResearchController() IResearchController {
-// 	return ResearchController{}
-// }
+func (c *Controller) ResearchCreate(ctx *gin.Context) {
+	req := model.ResearchCreateReq{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
 
-// func (r ResearchController) List(ctx *gin.Context) {
-// 	pagination := form.Pagination{}
-// 	if err := ctx.ShouldBindQuery(&pagination); err != nil {
-// 		err = errors.Wrap(err, ecode.ValidateErr, "bind query error")
-// 		response.JSON(ctx, err, nil)
-// 		return
-// 	}
-// 	var researches []model.Research
-// 	page, size := pagination.Page, pagination.Size
-// 	var total int64
+	var err error
+	userId, exist := ctx.Get(constant.UserID)
+	if !exist {
+		err = errors.Wrap(err, ecode.AuthTokenErr, "未登录")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	research := model.Research{
+		Title:       req.Title,
+		Description: req.Description,
+		StartAt:     req.StartAt,
+		EndAt:       req.EndAt,
+		Once:        *req.Once,
+		Open:        *req.Open,
+		PublisherID: uint(userId.(int64)),
+	}
+	var config, pattern, items []byte
 
-// 	// 不是超管只可查看自己发布的问卷
-// 	query := make(map[string]interface{})
-// 	claims := jwt.ExtractClaims(ctx)
-// 	id := int(claims["id"].(float64))
-// 	if username := claims["username"].(string); username != "admin" {
-// 		query["publisher_id"] = id
-// 	}
-// 	if err := researchServices.List(&researches, page, size, &total, query); err != nil {
-// 		log.Println(err.Error())
-// 		util.Success(ctx, nil, "获取数据失败")
-// 		return
-// 	}
-// 	util.Success(ctx, gin.H{
-// 		"page":    pagination.Page,
-// 		"size":    pagination.Size,
-// 		"results": researches,
-// 		"total":   total,
-// 	}, "获取数据成功")
-// }
+	if config, err = json.Marshal(req.Config); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	research.Config = string(config)
+	if pattern, err = json.Marshal(req.Pattern); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	research.Pattern = string(pattern)
+	if items, err = json.Marshal(req.Items); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	research.Items = string(items)
 
-// func (r ResearchController) Retrieve(ctx *gin.Context) {
-// 	var id int
-// 	var err error
-// 	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "ID错误")
-// 		return
-// 	}
-// 	research := model.Research{}
-// 	if err = researchServices.Retrieve(&research, id); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "未找到记录")
-// 		return
-// 	}
-// 	util.Success(ctx, gin.H{"research": research}, "获取信息成功")
-// }
+	if err := c.service.ResearchCreate(&research); err != nil {
+		err = errors.Wrap(err, ecode.RecordCreateErr, "创建失败")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	response.JSON(ctx, nil, research.ToRes())
+}
 
-// func (r ResearchController) RetrieveOpen(ctx *gin.Context) {
-// 	var id int
-// 	var err error
-// 	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "ID错误")
-// 		return
-// 	}
-// 	research := model.Research{}
-// 	if err = researchServices.Retrieve(&research, id); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "未找到记录")
-// 		return
-// 	}
-// 	if research.Open == 0 {
-// 		util.Fail(ctx, gin.H{}, "非开放问卷")
-// 		return
-// 	}
-// 	util.Success(ctx, gin.H{"research": research}, "获取信息成功")
-// }
+func (c *Controller) ResearchUpdate(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "ID错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	req := model.ResearchUpdateReq{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	research := model.Research{}
+	if err = c.service.ResearchRetrieve(&research, id); err != nil {
+		err = errors.Wrap(err, ecode.RecordRetrieveErr, "未找到记录")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	payload := map[string]interface{}{
+		"title":       req.Title,
+		"description": req.Description,
+		"startAt":     req.StartAt,
+		"endAt":       req.EndAt,
+		"once":        req.Once,
+		"open":        req.Open,
+	}
+	var config, pattern, items []byte
+	if config, err = json.Marshal(req.Config); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	payload["config"] = string(config)
+	if pattern, err = json.Marshal(req.Pattern); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	payload["pattern"] = string(pattern)
+	if items, err = json.Marshal(req.Items); err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "参数错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	payload["items"] = string(items)
+	if err = c.service.ResearchUpdate(&research, payload); err != nil {
+		err = errors.Wrap(err, ecode.RecordUpdateErr, "更新失败")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	response.JSON(ctx, nil, research.ToRes())
+}
 
-// func (r ResearchController) Create(ctx *gin.Context) {
-// 	createForm := form.ResearchCreateForm{}
-// 	if err := ctx.ShouldBindJSON(&createForm); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "参数错误")
-// 		return
-// 	}
+func (c *Controller) ResearchDelete(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		err = errors.Wrap(err, ecode.ValidateErr, "ID错误")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	if err = c.service.ResearchDelete(id); err != nil {
+		err = errors.Wrap(err, ecode.RecordDeleteErr, "删除失败")
+		response.JSON(ctx, err, nil)
+		return
+	}
+	response.JSON(ctx, nil, gin.H{})
+}
 
-// 	claims := jwt.ExtractClaims(ctx)
-// 	id := int(claims["id"].(float64))
-// 	research := model.Research{
-// 		Title:       createForm.Title,
-// 		Description: createForm.Description,
-// 		Config:      createForm.Config,
-// 		Items:       createForm.Items,
-// 		Values:      createForm.Values,
-// 		StartAt:     createForm.StartAt,
-// 		EndAt:       createForm.EndAt,
-// 		Access:      createForm.Access,
-// 		Once:        createForm.Once,
-// 		Open:        createForm.Open,
-// 		PublisherID: id,
-// 	}
-
-// 	if err := researchServices.Create(&research); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "创建失败")
-// 		return
-// 	}
-// 	util.Success(ctx, gin.H{}, "创建成功")
-// }
-
-// func (r ResearchController) Update(ctx *gin.Context) {
-// 	var id int
-// 	var err error
-// 	id, err = strconv.Atoi(ctx.Param("id"))
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "ID错误")
-// 		return
-// 	}
-// 	updatePayload := request.ResearchUpdatePayload{}
-// 	if err = ctx.ShouldBindJSON(&updatePayload); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "参数错误")
-// 		return
-// 	}
-// 	research := model.Research{}
-// 	if err = researchServices.Retrieve(&research, id); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "未找到记录")
-// 		return
-// 	}
-// 	payload := map[string]interface{}{
-// 		"title":       updatePayload.Title,
-// 		"description": updatePayload.Description,
-// 		"config":      updatePayload.Config,
-// 		"start_at":    updatePayload.StartAt,
-// 		"end_at":      updatePayload.EndAt,
-// 		"access":      updatePayload.Access,
-// 		"once":        updatePayload.Once,
-// 	}
-// 	if err = researchServices.Update(&research, payload); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "更新失败")
-// 		return
-// 	}
-// 	util.Success(ctx, gin.H{}, "更新成功")
-// }
-
-// func (r ResearchController) Delete(ctx *gin.Context) {
-// 	id, err := strconv.Atoi(ctx.Param("id"))
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "参数错误")
-// 		return
-// 	}
-// 	if err = researchServices.Delete(id); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "删除失败")
-// 		return
-// 	}
-// 	util.Success(ctx, gin.H{}, "删除成功")
-// }
-
-// func (r ResearchController) Square(ctx *gin.Context) {
-// 	pagination := form.Pagination{}
-// 	if err := ctx.ShouldBindQuery(&pagination); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, nil, "参数错误")
-// 		return
-// 	}
-
-// 	claims := jwt.ExtractClaims(ctx)
-// 	id := int(claims["id"].(float64))
-// 	user := model.User{}
-// 	if err := userServices.Retrieve(&user, id); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, gin.H{}, "未找到记录")
-// 		return
-// 	}
-
-// 	var researches []response.ResearchResponse
-// 	page, size := pagination.Page, pagination.Size
-// 	var total int64
-
-// 	query := make(map[string]interface{})
-// 	query["access"] = user.College
-// 	if err := researchServices.FindByAccess(&researches, page, size, &total, query); err != nil {
-// 		log.Println(err.Error())
-// 		util.Fail(ctx, nil, "获取数据失败")
-// 		return
-// 	}
-// 	util.Success(ctx, gin.H{
-// 		"page":    pagination.Page,
-// 		"size":    pagination.Size,
-// 		"results": researches,
-// 		"total":   total,
-// 	}, "获取数据成功")
-// }
-
-// func (r ResearchController) DownloadExcel(ctx *gin.Context) {
+// func (c *Controller) DownloadExcel(ctx *gin.Context) {
 // 	var id int
 // 	var err error
 // 	if id, err = strconv.Atoi(ctx.Param("id")); err != nil {

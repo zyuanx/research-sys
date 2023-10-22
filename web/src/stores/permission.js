@@ -37,14 +37,15 @@ export const usePermissionStore = defineStore(
 
     function getRoute(roles) {
       const dyRouter = makeDynamicRoute(dynamicRoutes, roles)
-      router.value.push(...dyRouter)
+      console.log('dyRouter', dyRouter)
+      router.value = constantRoutes.concat(dyRouter)
       return dyRouter
     }
     return { router, test, getRoute }
   },
   {
     persist: {
-      storage: localStorage
+      storage: sessionStorage
     }
   }
 )

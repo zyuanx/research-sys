@@ -2,19 +2,20 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/zyuanx/research-sys/internal/middleware"
 )
 
 func RegisterResearchRouter(r *gin.RouterGroup) {
-	// researchController := controller.NewResearchController()
 
-	// group := r.Group("")
-	// group.Use(middleware.AuthToken())
-	// group.GET("", researchController.List)
-	// group.GET("/:id", researchController.Retrieve)
-	// r.GET("/open/:id", researchController.RetrieveOpen)
-	// group.POST("", researchController.Create)
-	// group.PUT("/:id", researchController.Update)
-	// group.DELETE("/:id", researchController.Delete)
-	// group.GET("/square", researchController.Square)
-	// r.GET("/export/:id", researchController.DownloadExcel)
+	group := r.Group("research")
+	group.Use(middleware.AuthToken())
+	{
+		group.GET("", c.ResearchList)
+		group.GET("/:id", c.ResearchRetrieve)
+		group.POST("", c.ResearchCreate)
+		group.PUT("/:id", c.ResearchUpdate)
+		group.DELETE("/:id", c.ResearchDelete)
+		// group.GET("/square", researchController.Square)
+		// r.GET("/export/:id", researchController.DownloadExcel)
+	}
 }

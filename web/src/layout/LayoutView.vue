@@ -6,7 +6,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { usePermissionStore } from '@/stores/permission';
 import { computed } from 'vue';
 const permission = usePermissionStore();
-// console.log(permission.router)
+console.log('permission.router', permission.router)
 const router = useRouter();
 const route = useRoute();
 const currentPath = computed(function () {

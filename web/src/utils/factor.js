@@ -2,7 +2,6 @@
  * 此文件存放问题类型和校验规则
  */
 export const factorItems = {
-  // 短文本
   input: {
     factor: 'input',
     label: '短文本',
@@ -14,7 +13,6 @@ export const factorItems = {
     maxLength: 10,
     rules: []
   },
-  // 长文本
   textarea: {
     factor: 'textarea',
     label: '长文本',
@@ -27,7 +25,6 @@ export const factorItems = {
     rows: 3,
     rules: []
   },
-  // 单选
   radio: {
     factor: 'radio',
     label: '单选',
@@ -40,7 +37,6 @@ export const factorItems = {
     requiredMsg: '请选择选项',
     rules: []
   },
-  // 多选
   checkbox: {
     factor: 'checkbox',
     label: '多选',
@@ -55,7 +51,6 @@ export const factorItems = {
     required: true,
     rules: []
   },
-  // 下拉选择
   select: {
     factor: 'select',
     label: '下拉选择',
@@ -68,7 +63,6 @@ export const factorItems = {
     requiredMsg: '请选择选项',
     rules: []
   },
-  // 时间选择
   timePicker: {
     factor: 'timePicker',
     label: '时间选择',
@@ -76,7 +70,6 @@ export const factorItems = {
     required: true,
     requiredMsg: '请选择时间'
   },
-  // 日期选择
   datePicker: {
     factor: 'datePicker',
     label: '日期选择',

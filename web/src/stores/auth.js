@@ -22,7 +22,10 @@ export const useAuthStore = defineStore(
       token.value = ''
       userInfo.value = {}
     }
-    return { token, userInfo, userLogin, getUserInfo, resetToken }
+    const userLogout = () => {
+      resetToken()
+    }
+    return { token, userInfo, userLogin, getUserInfo, resetToken, userLogout }
   },
   {
     persist: {

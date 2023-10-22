@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (s *Service) RecordList(page int, size int, records *[]model.Record, total *int64, query map[string]interface{}) error {
+func (s *Service) RecordList(records *[]model.Record, page int, size int, total *int64, query map[string]interface{}) error {
 	if err := s.db.Model(&model.Record{}).
 		Where(query).
 		Count(total).

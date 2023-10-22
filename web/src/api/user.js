@@ -1,4 +1,4 @@
-import request from '@/api/request/index'
+import request from '@/request/index'
 
 export function changePassword(data) {
   return request({

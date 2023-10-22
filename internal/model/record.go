@@ -10,11 +10,3 @@ type Record struct {
 	UserID     int      `gorm:"comment:填写者ID" json:"userID"`
 	User       User     `gorm:"foreignKey:UserID" json:"user"`
 }
-
-type OpenRecord struct {
-	BaseModel
-	ResearchID int      `gorm:"comment:问卷ID" json:"-"`
-	Research   Research `gorm:"foreignKey:ResearchID" json:"-"`
-	IPAddress  string   `gorm:"size:64;comment:填写IP" json:"IPAddress"`
-	Values     string   `gorm:"type:text;comment:填写者ID" json:"values"`
-}

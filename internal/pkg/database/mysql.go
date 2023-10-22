@@ -53,4 +53,5 @@ func NewSqlite() *gorm.DB {
 func migrate(db *gorm.DB) {
 	db.AutoMigrate(&model.User{})
 	db.AutoMigrate(&model.Role{})
+	db.AutoMigrate(&model.Research{})
 }

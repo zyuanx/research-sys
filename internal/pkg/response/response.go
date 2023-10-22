@@ -16,7 +16,6 @@ type ApiResponse struct {
 	Data      interface{} `json:"data,omitempty"` // 响应数据，一般从这里前端从这个里面取出数据展示
 }
 
-// JSON 发送json格式的数据
 func JSON(c *gin.Context, err error, data interface{}) {
 	errCode, message := errors.DecodeErr(err)
 	var httpStatus int

@@ -24,8 +24,8 @@ api.interceptors.response.use(
     return Promise.resolve(res.data)
   },
   (err) => {
-    const res = err.response.data
-    console.log(res)
+    // const res = err.response.data
+    console.log(err)
     Promise.reject(err)
   }
 )
