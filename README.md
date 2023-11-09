@@ -1,5 +1,5 @@
 # Research sys
 
-WPI
+WIP
 
 ![demo](./demo.png)
